@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { toast } from 'react-toastify';
-import { uploadAPI } from '../../services/api';
+import { uploadAPI, settingsAPI } from '../../services/api';
 import { Settings as SettingsIcon, CreditCard, Truck, Palette, Bell, Upload, Save, Image as ImageIcon, Facebook } from 'lucide-react';
 
 const tabs = [
@@ -51,18 +51,29 @@ const Settings = () => {
   const [settings, setSettings] = useState(defaultSettings);
 
   useEffect(() => {
-    const saved = localStorage.getItem('admin_settings');
-    if (saved) {
+    let mounted = true;
+    (async () => {
       try {
-        setSettings({ ...defaultSettings, ...JSON.parse(saved) });
-      } catch (_) {}
-    }
+        const res = await settingsAPI.get();
+        const data = res?.data?.settings || {};
+        if (mounted) setSettings({ ...defaultSettings, ...data });
+      } catch (_) {
+        const saved = localStorage.getItem('admin_settings');
+        if (saved) {
+          try { if (mounted) setSettings({ ...defaultSettings, ...JSON.parse(saved) }); } catch (_) {}
+        }
+      }
+    })();
+    return () => { mounted = false; };
   }, []);
 
   const save = async () => {
     setSaving(true);
     try {
-      localStorage.setItem('admin_settings', JSON.stringify(settings));
+      const res = await settingsAPI.update(settings);
+      const saved = res?.data?.settings || settings;
+      localStorage.setItem('admin_settings', JSON.stringify(saved));
+      localStorage.setItem('public_settings', JSON.stringify({ social: saved.social || {}, updatedAt: new Date().toISOString() }));
       toast.success('Settings saved');
     } catch (_) {
       toast.error('Failed to save settings');

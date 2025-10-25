@@ -139,3 +139,10 @@ export const bannersAPI = {
   delete: (id) => api.delete(`/banners/${id}`),
   toggle: (id) => api.patch(`/banners/${id}/toggle`),
 };
+
+// Settings API
+export const settingsAPI = {
+  getPublic: () => api.get('/settings/public'),
+  get: () => api.get('/settings'),
+  update: (data) => api.put('/settings', data),
+};
