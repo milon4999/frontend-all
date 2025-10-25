@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Star, TrendingUp, Shield, Truck, ChevronLeft, ChevronRight, Flame, Sparkles } from 'lucide-react';
 import { productsAPI } from '../services/api';
@@ -7,60 +7,110 @@ import CategorySlider from '../components/CategorySlider';
 import { formatPrice } from '../utils/currency';
 import '../debug'; // Import debug logging
 
+const HOME_CACHE_TTL_MS = 1000 * 60 * 5; // 5 minutes
+const homeCacheStore = {
+  data: null,
+  timestamp: 0,
+};
+
+const getHomeCache = () => {
+  if (!homeCacheStore.data) return null;
+  if (Date.now() - homeCacheStore.timestamp > HOME_CACHE_TTL_MS) {
+    homeCacheStore.data = null;
+    return null;
+  }
+  return homeCacheStore.data;
+};
+
+const updateHomeCache = (data) => {
+  homeCacheStore.data = {
+    featuredProducts: [],
+    topSaleProducts: [],
+    latestProducts: [],
+    latestPage: 1,
+    hasMoreLatest: true,
+    ...(homeCacheStore.data || {}),
+    ...data,
+  };
+  homeCacheStore.timestamp = Date.now();
+};
+
 const Home = () => {
-  const [featuredProducts, setFeaturedProducts] = useState([]);
-  const [topSaleProducts, setTopSaleProducts] = useState([]);
-  const [latestProducts, setLatestProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [saleLoading, setSaleLoading] = useState(true);
-  const [latestLoading, setLatestLoading] = useState(true);
-  const [latestPage, setLatestPage] = useState(1);
-  const [hasMoreLatest, setHasMoreLatest] = useState(true);
+  const cachedHome = getHomeCache();
+  const [featuredProducts, setFeaturedProducts] = useState(cachedHome?.featuredProducts || []);
+  const [topSaleProducts, setTopSaleProducts] = useState(cachedHome?.topSaleProducts || []);
+  const [latestProducts, setLatestProducts] = useState(cachedHome?.latestProducts || []);
+  const [loading, setLoading] = useState(!cachedHome);
+  const [saleLoading, setSaleLoading] = useState(!cachedHome);
+  const [latestLoading, setLatestLoading] = useState(!cachedHome);
+  const [latestPage, setLatestPage] = useState(cachedHome?.latestPage || 1);
+  const [hasMoreLatest, setHasMoreLatest] = useState(
+    cachedHome?.hasMoreLatest !== undefined ? cachedHome.hasMoreLatest : true
+  );
   const [loadingMore, setLoadingMore] = useState(false);
 
+  const initialCacheRef = useRef(cachedHome);
+
   useEffect(() => {
-    const fetchData = async () => {
+    let active = true;
+
+    const fetchData = async (showSkeleton) => {
+      if (showSkeleton) {
+        setLoading(true);
+        setSaleLoading(true);
+        setLatestLoading(true);
+      }
+
       try {
         console.log('Fetching products from:', process.env.REACT_APP_API_URL);
-        
-        // Fetch featured products
+
         const productsRes = await productsAPI.getAll({ featured: true, limit: 8 });
         console.log('API Response:', productsRes);
         console.log('Products data:', productsRes.data);
-        setFeaturedProducts(productsRes.data.products);
-        
-        // Fetch top sale products (products with comparePrice indicating they're on sale)
-        const saleProductsRes = await productsAPI.getAll({ 
-          sort: '-createdAt', // Sort by newest first, you can change this to sales volume if available
-          limit: 10 
-        });
-        
-        // Filter products that have comparePrice (indicating they're on sale)
-        const saleProducts = saleProductsRes.data.products.filter(product => 
-          product.comparePrice && product.comparePrice > product.price
+        const featured = productsRes.data.products;
+
+        const saleProductsRes = await productsAPI.getAll({ sort: '-createdAt', limit: 10 });
+        const saleFiltered = saleProductsRes.data.products.filter(
+          (product) => product.comparePrice && product.comparePrice > product.price
         );
-        
-        setTopSaleProducts(saleProducts.slice(0, 10)); // Ensure we only get 10 products
-        
-        // Fetch latest products (newest products)
-        const latestProductsRes = await productsAPI.getAll({ 
-          sort: '-createdAt',
-          limit: 10,
-          page: 1
+        const topSale = saleFiltered.slice(0, 10);
+
+        const latestProductsRes = await productsAPI.getAll({ sort: '-createdAt', limit: 10, page: 1 });
+        const latest = latestProductsRes.data.products;
+        const hasMore = latest.length === 10;
+
+        if (!active) return;
+
+        setFeaturedProducts(featured);
+        setTopSaleProducts(topSale);
+        setLatestProducts(latest);
+        setHasMoreLatest(hasMore);
+        setLatestPage(1);
+
+        updateHomeCache({
+          featuredProducts: featured,
+          topSaleProducts: topSale,
+          latestProducts: latest,
+          latestPage: 1,
+          hasMoreLatest: hasMore,
         });
-        setLatestProducts(latestProductsRes.data.products);
-        setHasMoreLatest(latestProductsRes.data.products.length === 10);
-        
       } catch (error) {
+        if (!active) return;
         console.error('Error fetching data:', error);
         console.error('Error details:', error.response?.data);
       } finally {
+        if (!active) return;
         setLoading(false);
         setSaleLoading(false);
         setLatestLoading(false);
       }
     };
-    fetchData();
+
+    fetchData(!initialCacheRef.current);
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Scroll functions for top sale products
@@ -111,11 +161,20 @@ const Home = () => {
       });
       
       if (response.data.products.length > 0) {
-        setLatestProducts(prev => [...prev, ...response.data.products]);
+        setLatestProducts((prev) => {
+          const merged = [...prev, ...response.data.products];
+          updateHomeCache({
+            latestProducts: merged,
+            latestPage: nextPage,
+            hasMoreLatest: response.data.products.length === 10,
+          });
+          return merged;
+        });
         setLatestPage(nextPage);
         setHasMoreLatest(response.data.products.length === 10);
       } else {
         setHasMoreLatest(false);
+        updateHomeCache({ hasMoreLatest: false });
       }
     } catch (error) {
       console.error('Error loading more products:', error);

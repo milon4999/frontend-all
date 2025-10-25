@@ -5,11 +5,13 @@ import { Star, Filter } from 'lucide-react';
 import { fetchProducts, fetchMoreProducts } from '../store/slices/productSlice';
 import { categoriesAPI } from '../services/api';
 import { formatPrice } from '../utils/currency';
+import { buildCacheKey } from '../utils/cache';
+import { setScrollPosition } from '../store/slices/productSlice';
 
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const dispatch = useDispatch();
-  const { products, loading, totalPages, currentPage } = useSelector((state) => state.products);
+  const { products, loading, totalPages, currentPage, listCache, scrollYByKey } = useSelector((state) => state.products);
 
   const [categories, setCategories] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
@@ -37,10 +39,34 @@ const Products = () => {
   }, []);
 
   useEffect(() => {
-    // Reset to page 1 when filters change
-    dispatch(fetchProducts({ ...filters, page: 1 }));
+    // Reset to page 1 when filters change, but use cache if fresh to avoid flicker and extra requests
+    const key = buildCacheKey({ ...filters, page: 1 });
+    const cached = listCache[key];
+    const CACHE_TTL_MS = 1000 * 60 * 5;
+    const fresh = cached && Date.now() - cached.timestamp < CACHE_TTL_MS;
+
+    if (!fresh) {
+      dispatch(fetchProducts({ ...filters, page: 1 }));
+    } else {
+      // If fresh, restore scroll position asynchronously
+      const y = scrollYByKey[key] || 0;
+      if (y > 0) {
+        requestAnimationFrame(() => window.scrollTo(0, y));
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, filters.search, filters.category, filters.minPrice, filters.maxPrice, filters.sort, filters.featured]);
+
+  // Save scroll position on unmount
+  useEffect(() => {
+    const key = buildCacheKey({ ...filters, page: 1 });
+    return () => {
+      try {
+        dispatch(setScrollPosition({ key, y: window.scrollY }));
+      } catch {}
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.search, filters.category, filters.minPrice, filters.maxPrice, filters.sort, filters.featured]);
 
   // Infinite scroll
   useEffect(() => {
