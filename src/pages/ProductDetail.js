@@ -200,10 +200,10 @@ const ProductDetail = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-12">
           {/* Product Images */}
-          <div className="space-y-4">
+          <div className="space-y-2 md:space-y-4">
             {/* Main Image */}
             <div className="relative bg-white rounded-2xl overflow-hidden shadow-lg">
               <img
@@ -230,7 +230,7 @@ const ProductDetail = () => {
             </div>
 
             {/* Thumbnail Images */}
-            <div className="flex space-x-2 overflow-x-auto pb-2">
+            <div className="flex space-x-1 md:space-x-2 overflow-x-auto pb-2">
               {product.images.map((img, idx) => (
                 <button
                   key={idx}
@@ -252,7 +252,7 @@ const ProductDetail = () => {
           </div>
 
           {/* Product Information */}
-          <div className="space-y-6">
+          <div className="space-y-3 md:space-y-6">
             {/* Header */}
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -271,10 +271,10 @@ const ProductDetail = () => {
                   <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-current' : ''}`} />
                 </button>
               </div>
-              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">{product.name}</h1>
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 md:mb-4">{product.name}</h1>
               
               {/* Rating */}
-              <div className="flex items-center space-x-4 mb-4">
+              <div className="flex items-center space-x-2 md:space-x-4 mb-2 md:mb-4">
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
                     <Star
@@ -294,13 +294,13 @@ const ProductDetail = () => {
             </div>
 
             {/* Price */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border">
+            <div className="bg-white rounded-xl p-3 md:p-6 shadow-sm border">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center space-x-3">
-                    <span className="text-3xl font-bold text-pink-600">{formatPrice(product.price, product.currency)}</span>
+                    <span className="text-2xl md:text-3xl font-bold text-pink-600">{formatPrice(product.price, product.currency)}</span>
                     {product.comparePrice && (
-                      <span className="text-xl text-gray-500 line-through">
+                      <span className="text-lg md:text-xl text-gray-500 line-through">
                         {formatPrice(product.comparePrice, product.currency)}
                       </span>
                     )}
@@ -341,7 +341,7 @@ const ProductDetail = () => {
             {product.variants && product.variants.length > 0 && (
               <div className="space-y-4">
                 {product.variants.map((variant) => (
-                  <div key={variant.name} className="bg-white rounded-xl p-4 shadow-sm border">
+                  <div key={variant.name} className="bg-white rounded-xl p-3 md:p-4 shadow-sm border">
                     <label className="block text-sm font-semibold text-gray-900 mb-3">
                       {variant.name}
                     </label>
@@ -366,7 +366,7 @@ const ProductDetail = () => {
             )}
 
             {/* Quantity & Add to Cart */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border space-y-4">
+            <div className="bg-white rounded-xl p-3 md:p-6 shadow-sm border space-y-3 md:space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-3">Quantity</label>
                 <div className="flex items-center space-x-3">
@@ -397,26 +397,26 @@ const ProductDetail = () => {
             </div>
 
             {/* Features */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="flex items-center space-x-3 p-4 bg-white rounded-lg shadow-sm border">
-                <Truck className="h-6 w-6 text-blue-600" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-4">
+              <div className="flex items-center space-x-2 md:space-x-3 p-2 md:p-4 bg-white rounded-lg shadow-sm border">
+                <Truck className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
                 <div>
-                  <div className="font-semibold text-sm">Free Shipping</div>
-                  <div className="text-xs text-gray-500">On orders over $50</div>
+                  <div className="font-semibold text-xs md:text-sm">Free Shipping</div>
+                  <div className="text-[10px] md:text-xs text-gray-500">On orders over $50</div>
                 </div>
               </div>
-              <div className="flex items-center space-x-3 p-4 bg-white rounded-lg shadow-sm border">
-                <RotateCcw className="h-6 w-6 text-green-600" />
+              <div className="flex items-center space-x-2 md:space-x-3 p-2 md:p-4 bg-white rounded-lg shadow-sm border">
+                <RotateCcw className="h-5 w-5 md:h-6 md:w-6 text-green-600" />
                 <div>
-                  <div className="font-semibold text-sm">Easy Returns</div>
-                  <div className="text-xs text-gray-500">30-day policy</div>
+                  <div className="font-semibold text-xs md:text-sm">Easy Returns</div>
+                  <div className="text-[10px] md:text-xs text-gray-500">30-day policy</div>
                 </div>
               </div>
-              <div className="flex items-center space-x-3 p-4 bg-white rounded-lg shadow-sm border">
-                <Shield className="h-6 w-6 text-purple-600" />
+              <div className="flex items-center space-x-2 md:space-x-3 p-2 md:p-4 bg-white rounded-lg shadow-sm border">
+                <Shield className="h-5 w-5 md:h-6 md:w-6 text-purple-600" />
                 <div>
-                  <div className="font-semibold text-sm">Secure Payment</div>
-                  <div className="text-xs text-gray-500">SSL encrypted</div>
+                  <div className="font-semibold text-xs md:text-sm">Secure Payment</div>
+                  <div className="text-[10px] md:text-xs text-gray-500">SSL encrypted</div>
                 </div>
               </div>
             </div>
@@ -424,10 +424,10 @@ const ProductDetail = () => {
         </div>
 
         {/* Product Details Tabs */}
-        <div className="mt-16">
+        <div className="mt-6 md:mt-16">
           <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
             {/* Tab Navigation */}
-            <div className="border-b">
+            <div className="border-b overflow-x-auto">
               <nav className="flex">
                 {[
                   { id: 'description', label: 'Description' },
@@ -438,7 +438,7 @@ const ProductDetail = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                    className={`px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                       activeTab === tab.id
                         ? 'border-blue-500 text-blue-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -451,7 +451,7 @@ const ProductDetail = () => {
             </div>
 
             {/* Tab Content */}
-            <div className="p-8">
+            <div className="p-4 md:p-8">
               {activeTab === 'description' && (
                 <div className="prose max-w-none">
                   <p className="text-gray-700 leading-relaxed text-lg">{product.description}</p>
@@ -523,8 +523,8 @@ const ProductDetail = () => {
       </div>
 
       {/* Recommended Products Section */}
-      <section className="py-4 md:py-12 bg-white pb-20 md:pb-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-4 md:py-12 bg-white pb-24 md:pb-12">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
           {/* Section Header */}
           <div className="flex items-center justify-between mb-3 md:mb-6">
             <div className="flex items-center">
