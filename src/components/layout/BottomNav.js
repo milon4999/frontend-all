@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Home, ShoppingBag, ShoppingCart, User, MessageCircle, Facebook } from 'lucide-react';
+import { getSocialLinks } from '../../utils/settings';
 
 // Custom WhatsApp icon component
 const WhatsAppIcon = ({ className }) => (
@@ -44,16 +45,16 @@ const BottomNav = () => {
     };
   }, [showMessageDropdown]);
 
-
+  const { facebookUrl, whatsappUrl } = getSocialLinks();
   const messageOptions = [
     {
-      url: 'https://www.facebook.com/yourpage',
+      url: facebookUrl || 'https://www.facebook.com/yourpage',
       icon: Facebook,
       label: 'Facebook',
       color: 'bg-blue-500 hover:bg-blue-600'
     },
     {
-      url: 'https://wa.me/1234567890',
+      url: whatsappUrl || 'https://wa.me/1234567890',
       icon: WhatsAppIcon,
       label: 'WhatsApp',
       color: 'bg-green-500 hover:bg-green-600'

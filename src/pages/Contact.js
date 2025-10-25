@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, MessageCircle, Send } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { getSocialLinks } from '../utils/settings';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,7 @@ const Contact = () => {
     subject: '',
     message: ''
   });
+  const { facebookUrl, whatsappUrl } = getSocialLinks();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -85,7 +87,7 @@ const Contact = () => {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Contact</h3>
             <div className="space-y-3">
               <a
-                href="https://wa.me/1234567890"
+                href={whatsappUrl || 'https://wa.me/1234567890'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center space-x-3 p-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
@@ -95,7 +97,7 @@ const Contact = () => {
               </a>
               
               <a
-                href="https://www.facebook.com/yourpage"
+                href={facebookUrl || 'https://www.facebook.com/yourpage'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center space-x-3 p-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"

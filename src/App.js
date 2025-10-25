@@ -33,6 +33,7 @@ import AdminUsers from './pages/admin/Users';
 import AdminBanners from './pages/admin/Banners';
 import AdminCategories from './pages/admin/Categories';
 import AdminCoupons from './pages/admin/Coupons';
+import AdminSettings from './pages/admin/Settings';
 import TestProducts from './pages/admin/TestProducts';
 import LayoutTest from './pages/admin/LayoutTest';
 import ApiTest from './pages/ApiTest';
@@ -71,7 +72,7 @@ const AppLayout = () => {
           <Route path="/admin/categories" element={<AdminRoute><AdminCategories /></AdminRoute>} />
           <Route path="/admin/coupons" element={<AdminRoute><AdminCoupons /></AdminRoute>} />
           <Route path="/admin/analytics" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-          <Route path="/admin/settings" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+          <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
           <Route path="/admin/test" element={<AdminRoute><TestProducts /></AdminRoute>} />
           <Route path="/admin/layout-test" element={<AdminRoute><LayoutTest /></AdminRoute>} />
         </Routes>
