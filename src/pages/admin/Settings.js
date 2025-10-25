@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { toast } from 'react-toastify';
 import { uploadAPI } from '../../services/api';
-import { Settings as SettingsIcon, CreditCard, Truck, Palette, Bell, Upload, Save, Image as ImageIcon, Facebook, MessageCircle } from 'lucide-react';
+import { Settings as SettingsIcon, CreditCard, Truck, Palette, Bell, Upload, Save, Image as ImageIcon, Facebook } from 'lucide-react';
 
 const tabs = [
   { key: 'general', label: 'General', Icon: SettingsIcon },
