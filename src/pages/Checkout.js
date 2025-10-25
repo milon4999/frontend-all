@@ -1,18 +1,34 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { ordersAPI } from '../services/api';
-import { clearCart } from '../store/slices/cartSlice';
+import { clearCart, updateQuantity } from '../store/slices/cartSlice';
 import { toast } from 'react-toastify';
+import { getPublicSettings } from '../utils/settings';
+import { Minus } from 'lucide-react';
 
 const Checkout = () => {
   const { items } = useSelector((state) => state.cart);
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Ensure items is always an array
-  const cartItems = Array.isArray(items) ? items : [];
+  const keyOf = (i) => `${i.productId}-${i.variant || ''}`;
+  const [buyNowItem, setBuyNowItem] = useState(() => location.state?.buyNowItem || null);
+  const isBuyNow = !!buyNowItem;
+  const cartItems = useMemo(() => {
+    if (isBuyNow) return [buyNowItem];
+    const all = Array.isArray(items) ? items : [];
+    const keys = location.state?.selectedKeys || [];
+    return keys.length ? all.filter((i) => keys.includes(keyOf(i))) : all;
+  }, [items, location.state, isBuyNow, buyNowItem]);
+
+  const [selectedKeys, setSelectedKeys] = useState(() => cartItems.map(keyOf));
+  const selectedItems = useMemo(
+    () => cartItems.filter((i) => selectedKeys.includes(keyOf(i))),
+    [cartItems, selectedKeys]
+  );
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -24,31 +40,96 @@ const Checkout = () => {
     phone: user?.phone || ''
   });
 
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = subtotal > 50 ? 0 : 10;
+  const [shippingMethod, setShippingMethod] = useState('standard');
+  const [discount, setDiscount] = useState(0);
+  const [couponCode, setCouponCode] = useState('');
+  const [couponStatus, setCouponStatus] = useState('');
+
+  const subtotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const shipping = shippingMethod === 'standard' ? (subtotal > 50 ? 0 : 10) : 20;
   const tax = subtotal * 0.1;
-  const total = subtotal + shipping + tax;
+  const total = subtotal + shipping + tax - discount;
+
+  const offerSavings = useMemo(() => {
+    return selectedItems.reduce((sum, it) => {
+      const cp = Number(it.comparePrice || 0);
+      const p = Number(it.price || 0);
+      const q = Number(it.quantity || 0);
+      return sum + Math.max(0, (cp - p)) * q;
+    }, 0);
+  }, [selectedItems]);
+
+  // Payment methods from public settings (admin-controlled)
+  const enabledMethods = useMemo(() => {
+    const cfg = getPublicSettings()?.payments || {};
+    const list = [];
+    if (cfg.stripeEnabled) list.push({ id: 'card', label: 'Card (Stripe)' });
+    if (cfg.paypalEnabled) list.push({ id: 'paypal', label: 'PayPal' });
+    if (cfg.bankEnabled) list.push({ id: 'bank', label: 'Bank Transfer' });
+    if (cfg.localEnabled) list.push({ id: 'local', label: 'Local Payment' });
+    if (cfg.codEnabled) list.push({ id: 'cod', label: 'Cash on Delivery' });
+    if (cfg.socialEnabled) list.push({ id: 'social', label: 'Social' });
+    return list;
+  }, []);
+
+  const [paymentMethod, setPaymentMethod] = useState(() => enabledMethods[0]?.id || 'cod');
+  const buttonText = ['card', 'paypal'].includes(paymentMethod) ? 'Continue to Payment' : 'Place Order';
+
+  const applyCoupon = () => {
+    const code = (couponCode || '').trim().toUpperCase();
+    if (!code) {
+      setCouponStatus('Enter a coupon code');
+      setDiscount(0);
+      return;
+    }
+    if (code === 'SAVE10') {
+      const d = Math.min(subtotal * 0.10, subtotal);
+      setDiscount(Number(d.toFixed(2)));
+      setCouponStatus('10% off applied');
+      return;
+    }
+    if (code === 'SAVE20') {
+      const d = Math.min(subtotal * 0.20, subtotal);
+      setDiscount(Number(d.toFixed(2)));
+      setCouponStatus('20% off applied');
+      return;
+    }
+    if (code === 'FLAT50') {
+      const d = Math.min(50, subtotal);
+      setDiscount(Number(d.toFixed(2)));
+      setCouponStatus('$50 off applied');
+      return;
+    }
+    setDiscount(0);
+    setCouponStatus('Invalid coupon');
+  };
+
+  const clearCoupon = () => {
+    setCouponCode('');
+    setDiscount(0);
+    setCouponStatus('');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
       const orderData = {
-        items: cartItems.map(item => ({
+        items: selectedItems.map(item => ({
           product: item.productId,
           quantity: item.quantity,
           variant: item.variant
         })),
         shippingAddress: formData,
         payment: {
-          method: 'card',
+          method: paymentMethod,
           status: 'pending'
         },
         pricing: {
           subtotal,
           shipping,
           tax,
-          discount: 0,
+          discount,
           total
         }
       };
@@ -56,7 +137,9 @@ const Checkout = () => {
       const response = await ordersAPI.create(orderData);
       
       if (response.data.success) {
-        dispatch(clearCart());
+        if (!isBuyNow) {
+          dispatch(clearCart());
+        }
         toast.success('Order placed successfully!');
         navigate(`/orders/${response.data.order._id}`);
       }
@@ -66,12 +149,186 @@ const Checkout = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+    <div
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 md:pt-8 pb-28 md:pb-8"
+      style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 88px)' }}
+    >
+      <h1 className="text-3xl font-bold mb-4 md:mb-8">Checkout</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-4">
+      
+      <div className="block lg:hidden mb-6">
+        <div className="bg-white rounded-lg shadow-md p-4">
+          <h2 className="text-xl font-bold mb-3">Delivery Method</h2>
+          <div className="grid grid-cols-1 gap-3">
+            <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition ${shippingMethod === 'standard' ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}>
+              <div className="flex items-center space-x-2">
+                <input type="radio" name="shipping-mobile" value="standard" checked={shippingMethod === 'standard'} onChange={() => setShippingMethod('standard')} />
+                <span className="font-medium">Standard</span>
+              </div>
+              <span className="text-xs text-gray-500">{subtotal > 50 ? 'Free' : '$10'}</span>
+            </label>
+            <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition ${shippingMethod === 'express' ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}>
+              <div className="flex items-center space-x-2">
+                <input type="radio" name="shipping-mobile" value="express" checked={shippingMethod === 'express'} onChange={() => setShippingMethod('express')} />
+                <span className="font-medium">Express</span>
+              </div>
+              <span className="text-xs text-gray-500">$20</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
+        <div className="order-1 lg:order-2 lg:col-span-1">
+          <div className="bg-white rounded-lg shadow-md p-4 md:p-6 sticky top-20">
+            <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-gray-600">{selectedItems.length} item(s)</span>
+              <Link to="/cart" className="text-sm text-primary-600 hover:text-primary-700">Edit cart</Link>
+            </div>
+            
+            <div className="space-y-4 mb-4 max-h-60 overflow-y-auto">
+              {cartItems.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center space-x-3">
+                    {!isBuyNow ? (
+                      <input
+                        type="checkbox"
+                        checked={selectedKeys.includes(keyOf(item))}
+                        onChange={() => {
+                          const k = keyOf(item);
+                          setSelectedKeys((prev) => prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k]);
+                        }}
+                      />
+                    ) : null}
+                    <img src={item.image} alt={item.name} className="w-10 h-10 rounded object-cover" />
+                    <div>
+                      <div className="font-medium truncate max-w-[180px]">{item.name}</div>
+                      {item.variant ? <div className="text-xs text-gray-500 truncate">{item.variant}</div> : null}
+                      <div className="flex items-center space-x-2 text-xs text-gray-500">
+                        <span>Qty: {item.quantity}</span>
+                        {!isBuyNow ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (item.quantity > 1) {
+                                dispatch(updateQuantity({ productId: item.productId, variant: item.variant, quantity: item.quantity - 1 }));
+                              }
+                            }}
+                            className="p-1 rounded hover:bg-gray-100 disabled:opacity-50"
+                            disabled={item.quantity <= 1}
+                          >
+                            <Minus className="w-3.5 h-3.5" />
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setBuyNowItem((prev) => {
+                                if (!prev) return prev;
+                                if (keyOf(prev) !== keyOf(item)) return prev;
+                                return { ...prev, quantity: Math.max(1, (prev.quantity || 1) - 1) };
+                              });
+                            }}
+                            className="p-1 rounded hover:bg-gray-100 disabled:opacity-50"
+                            disabled={item.quantity <= 1}
+                          >
+                            <Minus className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      {Number(item.comparePrice || 0) > Number(item.price || 0) ? (
+                        <div className="text-[11px] text-green-600">Save ${((item.comparePrice - item.price) * item.quantity).toFixed(2)}</div>
+                      ) : null}
+                    </div>
+                  </div>
+                  <span>${(item.price * item.quantity).toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mb-4 space-y-2">
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  placeholder="Enter coupon"
+                  className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+                <button type="button" onClick={applyCoupon} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">Apply</button>
+                {discount > 0 ? (
+                  <button type="button" onClick={clearCoupon} className="px-3 py-2 border rounded-lg hover:bg-gray-50">Remove</button>
+                ) : null}
+              </div>
+              {couponStatus ? (
+                <div className={`text-xs ${couponStatus.includes('Invalid') ? 'text-red-600' : 'text-green-600'}`}>{couponStatus}</div>
+              ) : null}
+            </div>
+
+            <div className="border-t pt-4 space-y-2">
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>${subtotal.toFixed(2)}</span>
+              </div>
+              {offerSavings > 0 ? (
+                <div className="flex justify-between text-green-600">
+                  <span>You saved (offers)</span>
+                  <span>- ${offerSavings.toFixed(2)}</span>
+                </div>
+              ) : null}
+              <div className="flex justify-between">
+                <span>Shipping</span>
+                <span>{shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Tax</span>
+                <span>${tax.toFixed(2)}</span>
+              </div>
+              {discount > 0 ? (
+                <div className="flex justify-between text-green-600">
+                  <span>Discount</span>
+                  <span>- ${discount.toFixed(2)}</span>
+                </div>
+              ) : null}
+              <div className="border-t pt-2 flex justify-between font-bold text-lg">
+                <span>Total</span>
+                <span>${total.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="order-2 lg:hidden">
+          <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+            <h2 className="text-xl font-bold mb-3">Payment Method</h2>
+            {enabledMethods.length === 0 ? (
+              <div className="p-3 border rounded-lg bg-yellow-50 text-yellow-800 text-sm">
+                No payment methods are available. Please contact support.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-3">
+                {enabledMethods.map((m) => (
+                  <label key={m.id} className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition ${paymentMethod === m.id ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        name="payment"
+                        value={m.id}
+                        checked={paymentMethod === m.id}
+                        onChange={() => setPaymentMethod(m.id)}
+                      />
+                      <span className="font-medium">{m.label}</span>
+                    </div>
+                    <span className="text-xs text-gray-500 capitalize">{m.id}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="order-3 lg:order-1 lg:col-span-2">
+          <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-4 md:p-6 space-y-4">
             <h2 className="text-xl font-bold mb-4">Shipping Information</h2>
             
             <div>
@@ -153,47 +410,61 @@ const Checkout = () => {
               />
             </div>
 
+            <div className="pt-2 hidden lg:block">
+              <h2 className="text-xl font-bold mb-3">Delivery Method</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition ${shippingMethod === 'standard' ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}>
+                  <div className="flex items-center space-x-2">
+                    <input type="radio" name="shipping" value="standard" checked={shippingMethod === 'standard'} onChange={() => setShippingMethod('standard')} />
+                    <span className="font-medium">Standard</span>
+                  </div>
+                  <span className="text-xs text-gray-500">{subtotal > 50 ? 'Free' : '$10'}</span>
+                </label>
+                <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition ${shippingMethod === 'express' ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}>
+                  <div className="flex items-center space-x-2">
+                    <input type="radio" name="shipping" value="express" checked={shippingMethod === 'express'} onChange={() => setShippingMethod('express')} />
+                    <span className="font-medium">Express</span>
+                  </div>
+                  <span className="text-xs text-gray-500">$20</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="pt-2 hidden lg:block">
+              <h2 className="text-xl font-bold mb-3">Payment Method</h2>
+              {enabledMethods.length === 0 ? (
+                <div className="p-3 border rounded-lg bg-yellow-50 text-yellow-800 text-sm">
+                  No payment methods are available. Please contact support.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {enabledMethods.map((m) => (
+                    <label key={m.id} className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition ${paymentMethod === m.id ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          name="payment"
+                          value={m.id}
+                          checked={paymentMethod === m.id}
+                          onChange={() => setPaymentMethod(m.id)}
+                        />
+                        <span className="font-medium">{m.label}</span>
+                      </div>
+                      <span className="text-xs text-gray-500 capitalize">{m.id}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <button
               type="submit"
-              className="w-full bg-primary-600 text-white py-3 rounded-lg hover:bg-primary-700 transition font-semibold mt-6"
+              disabled={selectedItems.length === 0}
+              className="w-full bg-primary-600 text-white py-3 rounded-lg hover:bg-primary-700 transition font-semibold mt-6 disabled:opacity-50"
             >
-              Place Order
+              {buttonText}
             </button>
           </form>
-        </div>
-
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow-md p-6 sticky top-20">
-            <h2 className="text-xl font-bold mb-4">Order Summary</h2>
-            
-            <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
-              {cartItems.map((item, idx) => (
-                <div key={idx} className="flex justify-between text-sm">
-                  <span>{item.name} x {item.quantity}</span>
-                  <span>${(item.price * item.quantity).toFixed(2)}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="border-t pt-4 space-y-2">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Shipping</span>
-                <span>{shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Tax</span>
-                <span>${tax.toFixed(2)}</span>
-              </div>
-              <div className="border-t pt-2 flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span>${total.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

@@ -26,6 +26,10 @@ const defaultSettings = {
   payments: {
     stripeEnabled: true,
     codEnabled: true,
+    paypalEnabled: false,
+    bankEnabled: false,
+    localEnabled: false,
+    socialEnabled: false,
     stripePublicKey: ''
   },
   shipping: {
@@ -73,7 +77,7 @@ const Settings = () => {
       const res = await settingsAPI.update(settings);
       const saved = res?.data?.settings || settings;
       localStorage.setItem('admin_settings', JSON.stringify(saved));
-      localStorage.setItem('public_settings', JSON.stringify({ social: saved.social || {}, updatedAt: new Date().toISOString() }));
+      localStorage.setItem('public_settings', JSON.stringify({ social: saved.social || {}, payments: saved.payments || {}, updatedAt: new Date().toISOString() }));
       toast.success('Settings saved');
     } catch (_) {
       toast.error('Failed to save settings');
@@ -190,6 +194,10 @@ const Settings = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Switch label="Enable Stripe" checked={settings.payments.stripeEnabled} onChange={(v) => setSettings({ ...settings, payments: { ...settings.payments, stripeEnabled: v } })} />
           <Switch label="Enable Cash on Delivery" checked={settings.payments.codEnabled} onChange={(v) => setSettings({ ...settings, payments: { ...settings.payments, codEnabled: v } })} />
+          <Switch label="Enable PayPal" checked={settings.payments.paypalEnabled} onChange={(v) => setSettings({ ...settings, payments: { ...settings.payments, paypalEnabled: v } })} />
+          <Switch label="Enable Bank Transfer" checked={settings.payments.bankEnabled} onChange={(v) => setSettings({ ...settings, payments: { ...settings.payments, bankEnabled: v } })} />
+          <Switch label="Enable Local Payment" checked={settings.payments.localEnabled} onChange={(v) => setSettings({ ...settings, payments: { ...settings.payments, localEnabled: v } })} />
+          <Switch label="Enable Social Payment" checked={settings.payments.socialEnabled} onChange={(v) => setSettings({ ...settings, payments: { ...settings.payments, socialEnabled: v } })} />
         </div>
       </Section>
       <Section title="Stripe">

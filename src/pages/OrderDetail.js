@@ -23,11 +23,21 @@ const OrderDetail = () => {
   }, [id]);
 
   if (loading || !order) {
-    return <div className="max-w-7xl mx-auto px-4 py-8">Loading...</div>;
+    return (
+      <div
+        className="max-w-7xl mx-auto px-4 pt-4 md:pt-8 pb-28 md:pb-8"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 88px)' }}
+      >
+        Loading...
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div
+      className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 md:pt-8 pb-28 md:pb-8"
+      style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 88px)' }}
+    >
       <h1 className="text-3xl font-bold mb-2">Order Details</h1>
       <p className="text-gray-600 mb-8">Order #{order.orderNumber}</p>
 

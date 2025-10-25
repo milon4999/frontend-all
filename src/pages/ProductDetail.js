@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Star, ShoppingCart, Heart, Share2, Shield, Truck, RotateCcw, ChevronRight, Plus, Minus, Check, Info, Tag, Package, X, ArrowLeft, ChevronLeft } from 'lucide-react';
+import { Star, ShoppingCart, Heart, Share2, Shield, Truck, RotateCcw, ChevronRight, Plus, Minus, Check, Info, Tag, Package, X, ArrowLeft, ChevronLeft, Zap } from 'lucide-react';
 import { fetchProductById } from '../store/slices/productSlice';
 import { productsAPI } from '../services/api';
 import { addToCart } from '../store/slices/cartSlice';
@@ -69,11 +69,29 @@ const ProductDetail = () => {
       productId: product._id,
       name: product.name,
       price: product.price,
+      comparePrice: product.comparePrice,
       image: product.images[0]?.url,
       quantity,
       variant: variantString
     }));
     toast.success('Added to cart!');
+  };
+
+  const handleBuyNow = () => {
+    if (!product) return;
+    const variantString = Object.entries(selectedVariants)
+      .map(([key, value]) => `${key}: ${value}`)
+      .join(', ');
+    const buyNowItem = {
+      productId: product._id,
+      name: product.name,
+      price: product.price,
+      comparePrice: product.comparePrice,
+      image: product.images[0]?.url,
+      quantity,
+      variant: variantString
+    };
+    navigate('/checkout', { state: { buyNowItem } });
   };
 
   const handleAddToWishlist = () => {
@@ -365,7 +383,7 @@ const ProductDetail = () => {
               </div>
             )}
 
-            {/* Quantity & Add to Cart */}
+            {/* Quantity & Actions */}
             <div className="bg-white rounded-xl p-3 md:p-6 shadow-sm border space-y-3 md:space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-3">Quantity</label>
@@ -386,14 +404,25 @@ const ProductDetail = () => {
                 </div>
               </div>
 
-              <button
-                onClick={handleAddToCart}
-                disabled={product.inventory?.stock === 0}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg"
-              >
-                <ShoppingCart className="h-6 w-6 mr-2" />
-                {product.inventory?.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-              </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  onClick={handleBuyNow}
+                  disabled={product.inventory?.stock === 0}
+                  className="w-full bg-gradient-to-r from-pink-600 to-rose-600 text-white py-4 rounded-xl hover:from-pink-700 hover:to-rose-700 transition-all font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg"
+                >
+                  <Zap className="h-6 w-6 mr-2" />
+                  {product.inventory?.stock === 0 ? 'Out of Stock' : 'Buy Now'}
+                </button>
+
+                <button
+                  onClick={handleAddToCart}
+                  disabled={product.inventory?.stock === 0}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg"
+                >
+                  <ShoppingCart className="h-6 w-6 mr-2" />
+                  {product.inventory?.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                </button>
+              </div>
             </div>
 
             {/* Features */}
