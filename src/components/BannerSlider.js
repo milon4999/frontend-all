@@ -87,7 +87,7 @@ const BannerSlider = () => {
   };
 
   return (
-    <div className="relative w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px] overflow-hidden -mx-2 sm:mx-0">
+    <div className="relative w-full h-[160px] sm:h-[300px] md:h-[400px] lg:h-[500px] overflow-hidden">
       {/* Slides */}
       {banners.map((banner, index) => (
         <div
