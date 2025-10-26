@@ -300,7 +300,7 @@ const Home = () => {
                         </span>
                       </div>
                       <span className="text-[8px] sm:text-xs text-gray-500 font-medium">
-                        {product.stock > 100 ? Math.floor(Math.random() * 500) + 200 : Math.floor(Math.random() * 200) + 50} sold
+                        {product.sales || 0} sold
                       </span>
                     </div>
                     
@@ -429,7 +429,7 @@ const Home = () => {
                         </span>
                       </div>
                       <span className="text-[8px] sm:text-xs text-gray-500 font-medium">
-                        {product.stock > 100 ? Math.floor(Math.random() * 500) + 200 : Math.floor(Math.random() * 200) + 50} sold
+                        {product.sales || 0} sold
                       </span>
                     </div>
                     
@@ -505,11 +505,14 @@ const Home = () => {
                   </div>
                   <div className="p-2 sm:p-4">
                     <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-1 sm:mb-2 truncate">{product.name}</h3>
-                    <div className="flex items-center mb-1 sm:mb-2">
-                      <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400 fill-current" />
-                      <span className="ml-1 text-xs sm:text-sm text-gray-600">
-                        {product.ratings.average.toFixed(1)} ({product.ratings.count})
-                      </span>
+                    <div className="flex items-center justify-between mb-1 sm:mb-2">
+                      <div className="flex items-center">
+                        <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400 fill-current" />
+                        <span className="ml-1 text-xs sm:text-sm text-gray-600">
+                          {product.ratings.average.toFixed(1)} ({product.ratings.count})
+                        </span>
+                      </div>
+                      <span className="text-[10px] sm:text-xs text-gray-500">{product.sales || 0} sold</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <div>

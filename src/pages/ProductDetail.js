@@ -643,7 +643,7 @@ const ProductDetail = () => {
                         </span>
                       </div>
                       <span className="text-[9px] sm:text-xs text-gray-500">
-                        {recProduct.stock > 100 ? Math.floor(Math.random() * 500) + 200 : Math.floor(Math.random() * 200) + 50} sold
+                        {recProduct.sales || 0} sold
                       </span>
                     </div>
                     
