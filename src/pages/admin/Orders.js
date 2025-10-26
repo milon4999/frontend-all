@@ -12,6 +12,7 @@ import {
   Truck
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
+import { formatPrice } from '../../utils/currency';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -213,7 +214,10 @@ const Orders = () => {
                       {new Date(order.createdAt).toLocaleDateString()}
                     </td>
                     <td className="py-4 px-6 text-sm font-semibold text-gray-900">
-                      ${order.pricing?.total?.toFixed(2) || '0.00'}
+                      {formatPrice(
+                        order.pricing?.total || 0,
+                        order.currency || order.items?.[0]?.currency || order.items?.[0]?.product?.currency || 'USD'
+                      )}
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center">

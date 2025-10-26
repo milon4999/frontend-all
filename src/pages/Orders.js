@@ -75,7 +75,10 @@ const Orders = () => {
                   {order.items.length} item(s)
                 </div>
                 <div className="text-lg font-bold">
-                  {formatPrice(order.pricing.total, getAdminSettings()?.currency || 'USD')}
+                  {formatPrice(
+                    order.pricing.total,
+                    order.currency || order.items?.[0]?.currency || order.items?.[0]?.product?.currency || getAdminSettings()?.currency || 'USD'
+                  )}
                 </div>
               </div>
             </Link>

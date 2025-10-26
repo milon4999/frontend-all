@@ -78,7 +78,10 @@ const OrderDetail = () => {
                 <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
               </div>
               <div className="text-right">
-                <p className="font-bold">{formatPrice(item.price * item.quantity, item.product?.currency || 'USD')}</p>
+                <p className="font-bold">{formatPrice(
+                  item.price * item.quantity,
+                  item.currency || order.currency || item.product?.currency || 'USD'
+                )}</p>
               </div>
             </div>
           ))}
@@ -90,19 +93,31 @@ const OrderDetail = () => {
         <div className="space-y-2">
           <div className="flex justify-between">
             <span>Subtotal</span>
-            <span>{formatPrice(order.pricing.subtotal, order.items?.[0]?.product?.currency || 'USD')}</span>
+            <span>{formatPrice(
+              order.pricing.subtotal,
+              order.currency || order.items?.[0]?.currency || order.items?.[0]?.product?.currency || 'USD'
+            )}</span>
           </div>
           <div className="flex justify-between">
             <span>Shipping</span>
-            <span>{formatPrice(order.pricing.shipping, order.items?.[0]?.product?.currency || 'USD')}</span>
+            <span>{formatPrice(
+              order.pricing.shipping,
+              order.currency || order.items?.[0]?.currency || order.items?.[0]?.product?.currency || 'USD'
+            )}</span>
           </div>
           <div className="flex justify-between">
             <span>Tax</span>
-            <span>{formatPrice(order.pricing.tax, order.items?.[0]?.product?.currency || 'USD')}</span>
+            <span>{formatPrice(
+              order.pricing.tax,
+              order.currency || order.items?.[0]?.currency || order.items?.[0]?.product?.currency || 'USD'
+            )}</span>
           </div>
           <div className="border-t pt-2 flex justify-between font-bold text-lg">
             <span>Total</span>
-            <span>{formatPrice(order.pricing.total, order.items?.[0]?.product?.currency || 'USD')}</span>
+            <span>{formatPrice(
+              order.pricing.total,
+              order.currency || order.items?.[0]?.currency || order.items?.[0]?.product?.currency || 'USD'
+            )}</span>
           </div>
         </div>
       </div>

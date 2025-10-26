@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { analyticsAPI } from '../../services/api';
 import AdminLayout from '../../components/admin/AdminLayout';
+import { formatPrice } from '../../utils/currency';
+import { getAdminSettings } from '../../utils/settings';
 
 const Dashboard = () => {
   const [analytics, setAnalytics] = useState(null);
@@ -83,7 +85,10 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-sm font-medium">Total Revenue</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">${analytics.totalRevenue?.toFixed(2) || '0.00'}</p>
+                <p className="text-3xl font-bold text-gray-900 mt-2">{formatPrice(
+                  analytics.totalRevenue || 0,
+                  getAdminSettings()?.currency || 'USD'
+                )}</p>
                 <div className="flex items-center mt-2">
                   <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
                   <span className="text-sm text-green-600 font-medium">+12.5%</span>
@@ -281,7 +286,10 @@ const Dashboard = () => {
                   <tr key={order._id} className="hover:bg-gray-50">
                     <td className="py-4 px-4 text-sm font-medium text-gray-900">#{order.orderNumber}</td>
                     <td className="py-4 px-4 text-sm text-gray-900">{order.user?.name || 'Guest'}</td>
-                    <td className="py-4 px-4 text-sm font-semibold text-gray-900">${order.pricing?.total?.toFixed(2) || '0.00'}</td>
+                    <td className="py-4 px-4 text-sm font-semibold text-gray-900">{formatPrice(
+                      order.pricing?.total || 0,
+                      order.currency || order.items?.[0]?.currency || order.items?.[0]?.product?.currency || getAdminSettings()?.currency || 'USD'
+                    )}</td>
                     <td className="py-4 px-4">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         order.status === 'completed' ? 'bg-green-100 text-green-800' :
