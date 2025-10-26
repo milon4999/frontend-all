@@ -6,6 +6,7 @@ import { clearCart, updateQuantity } from '../store/slices/cartSlice';
 import { toast } from 'react-toastify';
 import { getPublicSettings } from '../utils/settings';
 import { Minus } from 'lucide-react';
+import { formatPrice } from '../utils/currency';
 
 const Checkout = () => {
   const { items } = useSelector((state) => state.cart);
@@ -29,6 +30,7 @@ const Checkout = () => {
     () => cartItems.filter((i) => selectedKeys.includes(keyOf(i))),
     [cartItems, selectedKeys]
   );
+  const currency = selectedItems[0]?.currency || cartItems[0]?.currency || buyNowItem?.currency || 'USD';
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -97,7 +99,7 @@ const Checkout = () => {
     if (code === 'FLAT50') {
       const d = Math.min(50, subtotal);
       setDiscount(Number(d.toFixed(2)));
-      setCouponStatus('$50 off applied');
+      setCouponStatus(`${formatPrice(50, currency)} off applied`);
       return;
     }
     setDiscount(0);
@@ -165,14 +167,14 @@ const Checkout = () => {
                 <input type="radio" name="shipping-mobile" value="standard" checked={shippingMethod === 'standard'} onChange={() => setShippingMethod('standard')} />
                 <span className="font-medium">Standard</span>
               </div>
-              <span className="text-xs text-gray-500">{subtotal > 50 ? 'Free' : '$10'}</span>
+              <span className="text-xs text-gray-500">{subtotal > 50 ? 'Free' : formatPrice(10, currency)}</span>
             </label>
             <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition ${shippingMethod === 'express' ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}>
               <div className="flex items-center space-x-2">
                 <input type="radio" name="shipping-mobile" value="express" checked={shippingMethod === 'express'} onChange={() => setShippingMethod('express')} />
                 <span className="font-medium">Express</span>
               </div>
-              <span className="text-xs text-gray-500">$20</span>
+              <span className="text-xs text-gray-500">{formatPrice(20, currency)}</span>
             </label>
           </div>
         </div>
@@ -238,11 +240,11 @@ const Checkout = () => {
                         )}
                       </div>
                       {Number(item.comparePrice || 0) > Number(item.price || 0) ? (
-                        <div className="text-[11px] text-green-600">Save ${((item.comparePrice - item.price) * item.quantity).toFixed(2)}</div>
+                        <div className="text-[11px] text-green-600">Save {formatPrice((item.comparePrice - item.price) * item.quantity, item.currency || currency)}</div>
                       ) : null}
                     </div>
                   </div>
-                  <span>${(item.price * item.quantity).toFixed(2)}</span>
+                  <span>{formatPrice(item.price * item.quantity, item.currency || currency)}</span>
                 </div>
               ))}
             </div>
@@ -269,31 +271,31 @@ const Checkout = () => {
             <div className="border-t pt-4 space-y-2">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>{formatPrice(subtotal, currency)}</span>
               </div>
               {offerSavings > 0 ? (
                 <div className="flex justify-between text-green-600">
                   <span>You saved (offers)</span>
-                  <span>- ${offerSavings.toFixed(2)}</span>
+                  <span>- {formatPrice(offerSavings, currency)}</span>
                 </div>
               ) : null}
               <div className="flex justify-between">
                 <span>Shipping</span>
-                <span>{shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}</span>
+                <span>{shipping === 0 ? 'Free' : formatPrice(shipping, currency)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Tax</span>
-                <span>${tax.toFixed(2)}</span>
+                <span>{formatPrice(tax, currency)}</span>
               </div>
               {discount > 0 ? (
                 <div className="flex justify-between text-green-600">
                   <span>Discount</span>
-                  <span>- ${discount.toFixed(2)}</span>
+                  <span>- {formatPrice(discount, currency)}</span>
                 </div>
               ) : null}
               <div className="border-t pt-2 flex justify-between font-bold text-lg">
                 <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+                <span>{formatPrice(total, currency)}</span>
               </div>
             </div>
           </div>
@@ -418,14 +420,14 @@ const Checkout = () => {
                     <input type="radio" name="shipping" value="standard" checked={shippingMethod === 'standard'} onChange={() => setShippingMethod('standard')} />
                     <span className="font-medium">Standard</span>
                   </div>
-                  <span className="text-xs text-gray-500">{subtotal > 50 ? 'Free' : '$10'}</span>
+                  <span className="text-xs text-gray-500">{subtotal > 50 ? 'Free' : formatPrice(10, currency)}</span>
                 </label>
                 <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition ${shippingMethod === 'express' ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}>
                   <div className="flex items-center space-x-2">
                     <input type="radio" name="shipping" value="express" checked={shippingMethod === 'express'} onChange={() => setShippingMethod('express')} />
                     <span className="font-medium">Express</span>
                   </div>
-                  <span className="text-xs text-gray-500">$20</span>
+                  <span className="text-xs text-gray-500">{formatPrice(20, currency)}</span>
                 </label>
               </div>
             </div>

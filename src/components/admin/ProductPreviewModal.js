@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Star, Tag, Eye } from 'lucide-react';
+import { formatPrice } from '../../utils/currency';
 
 const ProductPreviewModal = ({ isOpen, onClose, product }) => {
   if (!isOpen || !product) return null;
@@ -82,13 +83,13 @@ const ProductPreviewModal = ({ isOpen, onClose, product }) => {
 
                 {/* Price */}
                 <div className="flex items-center space-x-4">
-                  <span className="text-3xl font-bold text-gray-900">${product.price}</span>
+                  <span className="text-3xl font-bold text-gray-900">{formatPrice(product.price, product.currency)}</span>
                   {product.comparePrice && (
-                    <span className="text-xl text-gray-500 line-through">${product.comparePrice}</span>
+                    <span className="text-xl text-gray-500 line-through">{formatPrice(product.comparePrice, product.currency)}</span>
                   )}
                   {product.comparePrice && (
                     <span className="text-sm font-medium text-green-600">
-                      Save ${(product.comparePrice - product.price).toFixed(2)}
+                      Save {formatPrice(product.comparePrice - product.price, product.currency)}
                     </span>
                   )}
                 </div>

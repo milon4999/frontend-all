@@ -70,6 +70,7 @@ const ProductDetail = () => {
       name: product.name,
       price: product.price,
       comparePrice: product.comparePrice,
+      currency: product.currency,
       image: product.images[0]?.url,
       quantity,
       variant: variantString
@@ -87,6 +88,7 @@ const ProductDetail = () => {
       name: product.name,
       price: product.price,
       comparePrice: product.comparePrice,
+      currency: product.currency,
       image: product.images[0]?.url,
       quantity,
       variant: variantString
@@ -230,18 +232,25 @@ const ProductDetail = () => {
                 className="w-full h-96 lg:h-[500px] object-cover cursor-zoom-in"
                 onClick={() => setShowImageModal(true)}
               />
-              {product.featured && (
-                <div className="absolute top-4 left-4">
-                  <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center">
-                    <Star className="h-4 w-4 mr-1" />
-                    Featured
-                  </span>
+              {(product.featured || (product.comparePrice && Number(product.comparePrice) > Number(product.price))) && (
+                <div className="absolute top-4 left-4 flex flex-col gap-2">
+                  {product.featured && (
+                    <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center">
+                      <Star className="h-4 w-4 mr-1" />
+                      Featured
+                    </span>
+                  )}
+                  {product.comparePrice && Number(product.comparePrice) > Number(product.price) && (
+                    <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                      -{Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)}%
+                    </span>
+                  )}
                 </div>
               )}
-              {product.comparePrice && (
+              {product.comparePrice && Number(product.comparePrice) > Number(product.price) && (
                 <div className="absolute top-4 right-4">
                   <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                    Save ${(product.comparePrice - product.price).toFixed(2)}
+                    Save {formatPrice(product.comparePrice - product.price, product.currency)}
                   </span>
                 </div>
               )}
@@ -431,7 +440,7 @@ const ProductDetail = () => {
                 <Truck className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
                 <div>
                   <div className="font-semibold text-xs md:text-sm">Free Shipping</div>
-                  <div className="text-[10px] md:text-xs text-gray-500">On orders over $50</div>
+                  <div className="text-[10px] md:text-xs text-gray-500">On orders over {formatPrice(50, product.currency || 'USD')}</div>
                 </div>
               </div>
               <div className="flex items-center space-x-2 md:space-x-3 p-2 md:p-4 bg-white rounded-lg shadow-sm border">
@@ -538,7 +547,7 @@ const ProductDetail = () => {
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-4">Shipping Information</h4>
                     <div className="space-y-3 text-gray-700">
-                      <p>• Free shipping on orders over $50</p>
+                      <p>• Free shipping on orders over {formatPrice(50, product.currency || 'USD')}</p>
                       <p>• Standard delivery: 3-5 business days</p>
                       <p>• Express delivery: 1-2 business days (additional charges apply)</p>
                       <p>• International shipping available</p>
@@ -641,10 +650,10 @@ const ProductDetail = () => {
                     {/* Price Section */}
                     <div className="mt-auto">
                       <div className="flex items-baseline gap-1 sm:gap-2">
-                        <span className="text-sm sm:text-2xl font-bold text-red-600 leading-none">${recProduct.price}</span>
+                        <span className="text-sm sm:text-2xl font-bold text-red-600 leading-none">{formatPrice(recProduct.price, recProduct.currency)}</span>
                         {recProduct.comparePrice && (
                           <span className="text-[9px] sm:text-sm text-gray-400 line-through leading-none">
-                            ${recProduct.comparePrice}
+                            {formatPrice(recProduct.comparePrice, recProduct.currency)}
                           </span>
                         )}
                       </div>

@@ -25,6 +25,8 @@ const Wishlist = () => {
       productId: product._id,
       name: product.name,
       price: product.price,
+      comparePrice: product.comparePrice,
+      currency: product.currency,
       image: product.images[0]?.url,
       quantity: 1,
       variant: ''

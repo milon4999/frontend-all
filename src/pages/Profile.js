@@ -7,6 +7,8 @@ import {
   Package, Heart, ShoppingBag, Settings, Shield,
   CreditCard, Bell, LogOut
 } from 'lucide-react';
+import { getAdminSettings } from '../utils/settings';
+import { formatPrice } from '../utils/currency';
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
@@ -92,6 +94,8 @@ const Profile = () => {
     return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   };
 
+  const storeCurrency = getAdminSettings()?.currency || 'USD';
+
   const stats = [
     { 
       label: 'Total Orders', 
@@ -109,7 +113,7 @@ const Profile = () => {
     },
     { 
       label: 'Total Spent', 
-      value: loading ? '...' : `$${totalSpent.toFixed(2)}`, 
+      value: loading ? '...' : formatPrice(totalSpent, storeCurrency), 
       icon: CreditCard, 
       color: 'bg-green-500',
       link: '/orders'

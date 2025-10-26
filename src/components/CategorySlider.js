@@ -64,44 +64,50 @@ const CategorySlider = () => {
         <div className="relative">
           <div
             ref={scrollContainerRef}
-            className="flex space-x-2 sm:space-x-4 overflow-x-auto scrollbar-hide scroll-smooth pb-1 sm:pb-2"
+            className="flex space-x-3 sm:space-x-4 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory pb-1 sm:pb-2 -mx-3 px-3"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            {categories.map((category) => (
+            {[{ _id: 'all', name: 'All' }, ...categories].map((category) => (
               <Link
                 key={category._id}
-                to={`/products?category=${category._id}`}
-                className="flex-shrink-0 group"
+                to={category._id === 'all' ? '/products' : `/products?category=${category._id}`}
+                className="flex-shrink-0 group snap-start"
+                aria-label={`Browse ${category.name}`}
               >
                 <div className="flex flex-col items-center">
-                  <div className="w-14 h-14 sm:w-20 sm:h-20 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg sm:rounded-2xl flex items-center justify-center mb-1 sm:mb-2 group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full ring-1 ring-gray-200 bg-white flex items-center justify-center mb-1 sm:mb-2 transition-all duration-300 group-hover:ring-primary-300 group-hover:shadow-md overflow-hidden">
                     {category.image ? (
                       <img
                         src={category.image}
                         alt={category.name}
-                        className="w-8 h-8 sm:w-12 sm:h-12 object-contain"
+                        loading="lazy"
+                        decoding="async"
+                        draggable="false"
+                        className="w-full h-full object-contain object-center p-2 select-none"
                         onError={(e) => {
                           e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'block';
+                          e.target.nextSibling.style.display = 'flex';
                         }}
                       />
                     ) : null}
                     <div 
-                      className="w-8 h-8 sm:w-12 sm:h-12 flex items-center justify-center text-primary-600"
-                      style={{ display: category.image ? 'none' : 'block' }}
+                      className="w-10 h-10 sm:w-12 sm:h-12 items-center justify-center text-primary-600 hidden"
+                      style={{ display: category.image ? 'none' : 'flex' }}
                     >
-                      <span className="text-xl sm:text-3xl font-bold">
+                      <span className="text-lg sm:text-2xl font-bold">
                         {category.name.charAt(0)}
                       </span>
                     </div>
                   </div>
-                  <span className="text-[10px] sm:text-sm font-medium text-gray-700 text-center max-w-[60px] sm:max-w-[80px] truncate">
+                  <span className="text-[11px] sm:text-sm font-medium text-gray-700 text-center max-w-[70px] sm:max-w-[90px] truncate">
                     {category.name}
                   </span>
                 </div>
               </Link>
             ))}
           </div>
+          <div className="pointer-events-none absolute left-0 top-0 h-full w-6 bg-gradient-to-r from-white to-transparent md:hidden"></div>
+          <div className="pointer-events-none absolute right-0 top-0 h-full w-6 bg-gradient-to-l from-white to-transparent md:hidden"></div>
 
           {/* Scroll Buttons - Hidden on mobile, visible on desktop */}
           <button
@@ -123,16 +129,16 @@ const CategorySlider = () => {
         {/* Features Row */}
         <div className="flex items-center justify-around mt-2 sm:mt-6 pt-2 sm:pt-4 border-t border-gray-200">
           <div className="flex items-center space-x-1 sm:space-x-2 group cursor-pointer">
-            <div className="bg-orange-100 p-1.5 sm:p-2 rounded-lg group-hover:bg-orange-200 transition-all duration-300 group-hover:scale-110">
-              <Truck className="h-4 w-4 sm:h-6 sm:w-6 text-orange-600 animate-bounce-slow" />
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-2 rounded-xl ring-1 ring-orange-100 group-hover:ring-orange-300 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-0.5 group-hover:shadow-md group-hover:animate-pulse">
+              <Truck className="h-4 w-4 sm:h-6 sm:w-6 text-orange-600 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </div>
-            <span className="text-[10px] sm:text-sm font-semibold text-gray-700 group-hover:text-orange-600 transition-colors">Free Delivery</span>
+            <span className="text-[10px] sm:text-sm font-semibold text-gray-700 group-hover:text-orange-600 transition-colors duration-300">Free Delivery</span>
           </div>
           <div className="flex items-center space-x-1 sm:space-x-2 group cursor-pointer">
-            <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg group-hover:bg-blue-200 transition-all duration-300 group-hover:scale-110">
-              <Tag className="h-4 w-4 sm:h-6 sm:w-6 text-blue-600 animate-pulse-slow" />
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-2 rounded-xl ring-1 ring-blue-100 group-hover:ring-blue-300 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-0.5 group-hover:shadow-md group-hover:animate-pulse">
+              <Tag className="h-4 w-4 sm:h-6 sm:w-6 text-blue-600 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110" />
             </div>
-            <span className="text-[10px] sm:text-sm font-semibold text-gray-700 group-hover:text-blue-600 transition-colors">Best Discount</span>
+            <span className="text-[10px] sm:text-sm font-semibold text-gray-700 group-hover:text-blue-600 transition-colors duration-300">Best Discount</span>
           </div>
         </div>
       </div>

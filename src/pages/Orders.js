@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ordersAPI } from '../services/api';
 import { Package } from 'lucide-react';
+import { formatPrice } from '../utils/currency';
+import { getAdminSettings } from '../utils/settings';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -73,7 +75,7 @@ const Orders = () => {
                   {order.items.length} item(s)
                 </div>
                 <div className="text-lg font-bold">
-                  ${order.pricing.total.toFixed(2)}
+                  {formatPrice(order.pricing.total, getAdminSettings()?.currency || 'USD')}
                 </div>
               </div>
             </Link>

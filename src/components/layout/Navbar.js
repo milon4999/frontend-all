@@ -45,7 +45,8 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-pink-600 text-white shadow-sm sticky top-0 z-50">
+    <>
+    <nav className="bg-pink-600 text-white shadow-sm fixed inset-x-0 top-0 z-50 md:sticky md:top-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 h-14 sm:h-16">
           {/* Logo */}
@@ -153,6 +154,9 @@ const Navbar = () => {
         </div>
       </div>
     </nav>
+    {/* Mobile spacer to offset fixed navbar height */}
+    <div className="h-14 sm:h-16 md:hidden" aria-hidden="true" />
+    </>
   );
 };
 

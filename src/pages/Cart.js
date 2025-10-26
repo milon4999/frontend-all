@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { Trash2, Plus, Minus } from 'lucide-react';
 import { removeFromCart, updateQuantity } from '../store/slices/cartSlice';
+import { formatPrice } from '../utils/currency';
 
 const Cart = () => {
   const { items } = useSelector((state) => state.cart);
@@ -24,6 +25,7 @@ const Cart = () => {
   const shippingSelected = subtotalSelected > 50 ? 0 : 10;
   const totalAll = subtotalAll + shippingAll;
   const totalSelected = subtotalSelected + shippingSelected;
+  const currency = selectedItems[0]?.currency || cartItems[0]?.currency || 'USD';
 
   const handleQuantityChange = (item, newQuantity) => {
     if (newQuantity < 1) return;
@@ -84,7 +86,7 @@ const Cart = () => {
               <div className="flex-1">
                 <h3 className="font-semibold">{item.name}</h3>
                 {item.variant && <p className="text-sm text-gray-600">{item.variant}</p>}
-                <p className="text-lg font-bold text-primary-600">${item.price}</p>
+                <p className="text-lg font-bold text-primary-600">{formatPrice(item.price, item.currency || currency)}</p>
               </div>
               <div className="flex items-center space-x-2">
                 <button
@@ -126,15 +128,15 @@ const Cart = () => {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span>Subtotal (selected)</span>
-                <span>${subtotalSelected.toFixed(2)}</span>
+                <span>{formatPrice(subtotalSelected, currency)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Shipping (selected)</span>
-                <span>{shippingSelected === 0 ? 'Free' : `$${shippingSelected.toFixed(2)}`}</span>
+                <span>{shippingSelected === 0 ? 'Free' : formatPrice(shippingSelected, currency)}</span>
               </div>
               <div className="border-t pt-2 flex justify-between font-bold">
                 <span>Total (selected)</span>
-                <span>${totalSelected.toFixed(2)}</span>
+                <span>{formatPrice(totalSelected, currency)}</span>
               </div>
             </div>
             <div className="grid grid-cols-1 gap-2">
@@ -149,7 +151,7 @@ const Cart = () => {
                 onClick={() => navigate('/checkout')}
                 className="w-full border text-gray-700 py-3 rounded-lg hover:bg-gray-50 transition font-semibold"
               >
-                Checkout All (${totalAll.toFixed(2)})
+                Checkout All ({formatPrice(totalAll, currency)})
               </button>
               <button
                 onClick={() => selectedItems.forEach((it) => handleRemove(it))}

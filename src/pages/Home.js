@@ -5,6 +5,7 @@ import { productsAPI } from '../services/api';
 import BannerSlider from '../components/BannerSlider';
 import CategorySlider from '../components/CategorySlider';
 import { formatPrice } from '../utils/currency';
+import { getAdminSettings } from '../utils/settings';
 import '../debug'; // Import debug logging
 
 const HOME_CACHE_TTL_MS = 1000 * 60 * 5; // 5 minutes
@@ -36,6 +37,7 @@ const updateHomeCache = (data) => {
 };
 
 const Home = () => {
+  const storeCurrency = getAdminSettings()?.currency || 'USD';
   const cachedHome = getHomeCache();
   const [featuredProducts, setFeaturedProducts] = useState(cachedHome?.featuredProducts || []);
   const [topSaleProducts, setTopSaleProducts] = useState(cachedHome?.topSaleProducts || []);
@@ -269,9 +271,11 @@ const Home = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     
                     {/* Sale Badge */}
-                    <div className="absolute top-1 left-1 sm:top-2 sm:left-2 bg-gradient-to-r from-red-600 to-red-500 text-white px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg text-[8px] sm:text-xs font-bold shadow-lg">
-                      -{Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)}%
-                    </div>
+                    {product.comparePrice && Number(product.comparePrice) > Number(product.price) && (
+                      <div className="absolute top-1 left-1 sm:top-2 sm:left-2 bg-gradient-to-r from-red-600 to-red-500 text-white px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg text-[8px] sm:text-xs font-bold shadow-lg">
+                        -{Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)}%
+                      </div>
+                    )}
                     
                     {/* Hot Sale Badge */}
                     <div className="absolute top-1 right-1 sm:top-2 sm:right-2">
@@ -330,7 +334,7 @@ const Home = () => {
                 <Truck className="h-8 w-8 text-primary-600" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Free Shipping</h3>
-              <p className="text-gray-600">On orders over $50</p>
+              <p className="text-gray-600">On orders over {formatPrice(50, storeCurrency)}</p>
             </div>
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-full mb-4">
@@ -403,7 +407,7 @@ const Home = () => {
                     {/* Gradient Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     
-                    {product.comparePrice && (
+                    {product.comparePrice && Number(product.comparePrice) > Number(product.price) && Number(product.comparePrice) > 0 && (
                       <div className="absolute top-1 left-1 sm:top-2 sm:left-2 bg-gradient-to-r from-red-600 to-red-500 text-white px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg text-[8px] sm:text-xs font-bold shadow-lg">
                         -{Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)}%
                       </div>
@@ -493,9 +497,9 @@ const Home = () => {
                       alt={product.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition duration-300"
                     />
-                    {product.comparePrice && (
+                    {product.comparePrice && Number(product.comparePrice) > Number(product.price) && Number(product.comparePrice) > 0 && (
                       <span className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-sm font-semibold">
-                        Sale
+                        -{Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)}%
                       </span>
                     )}
                   </div>

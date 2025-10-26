@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ordersAPI } from '../services/api';
 import { Package } from 'lucide-react';
+import { formatPrice } from '../utils/currency';
 
 const OrderDetail = () => {
   const { id } = useParams();
@@ -77,7 +78,7 @@ const OrderDetail = () => {
                 <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
               </div>
               <div className="text-right">
-                <p className="font-bold">${(item.price * item.quantity).toFixed(2)}</p>
+                <p className="font-bold">{formatPrice(item.price * item.quantity, item.product?.currency || 'USD')}</p>
               </div>
             </div>
           ))}
@@ -89,19 +90,19 @@ const OrderDetail = () => {
         <div className="space-y-2">
           <div className="flex justify-between">
             <span>Subtotal</span>
-            <span>${order.pricing.subtotal.toFixed(2)}</span>
+            <span>{formatPrice(order.pricing.subtotal, order.items?.[0]?.product?.currency || 'USD')}</span>
           </div>
           <div className="flex justify-between">
             <span>Shipping</span>
-            <span>${order.pricing.shipping.toFixed(2)}</span>
+            <span>{formatPrice(order.pricing.shipping, order.items?.[0]?.product?.currency || 'USD')}</span>
           </div>
           <div className="flex justify-between">
             <span>Tax</span>
-            <span>${order.pricing.tax.toFixed(2)}</span>
+            <span>{formatPrice(order.pricing.tax, order.items?.[0]?.product?.currency || 'USD')}</span>
           </div>
           <div className="border-t pt-2 flex justify-between font-bold text-lg">
             <span>Total</span>
-            <span>${order.pricing.total.toFixed(2)}</span>
+            <span>{formatPrice(order.pricing.total, order.items?.[0]?.product?.currency || 'USD')}</span>
           </div>
         </div>
       </div>
