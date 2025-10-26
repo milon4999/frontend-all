@@ -12,6 +12,7 @@ import {
   Truck
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
+import { Link } from 'react-router-dom';
 import { formatPrice } from '../../utils/currency';
 
 const Orders = () => {
@@ -235,9 +236,9 @@ const Orders = () => {
                       </div>
                     </td>
                     <td className="py-4 px-6 text-sm font-medium">
-                      <button className="text-blue-600 hover:text-blue-800 p-1 rounded-md hover:bg-blue-50">
+                      <Link to={`/orders/${order._id}`} className="text-blue-600 hover:text-blue-800 p-1 rounded-md hover:bg-blue-50 inline-flex">
                         <Eye className="h-4 w-4" />
-                      </button>
+                      </Link>
                     </td>
                   </tr>
                 ))}

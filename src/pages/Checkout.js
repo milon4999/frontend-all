@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { ordersAPI } from '../services/api';
+import { ordersAPI, couponsAPI } from '../services/api';
 import { clearCart, updateQuantity } from '../store/slices/cartSlice';
 import { toast } from 'react-toastify';
 import { getPublicSettings } from '../utils/settings';
@@ -44,6 +44,7 @@ const Checkout = () => {
 
   const [shippingMethod, setShippingMethod] = useState('standard');
   const [discount, setDiscount] = useState(0);
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponCode, setCouponCode] = useState('');
   const [couponStatus, setCouponStatus] = useState('');
 
@@ -77,39 +78,42 @@ const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState(() => enabledMethods[0]?.id || 'cod');
   const buttonText = ['card', 'paypal'].includes(paymentMethod) ? 'Continue to Payment' : 'Place Order';
 
-  const applyCoupon = () => {
+  const applyCoupon = async () => {
     const code = (couponCode || '').trim().toUpperCase();
     if (!code) {
       setCouponStatus('Enter a coupon code');
       setDiscount(0);
+      setAppliedCoupon(null);
       return;
     }
-    if (code === 'SAVE10') {
-      const d = Math.min(subtotal * 0.10, subtotal);
+    try {
+      const res = await couponsAPI.validate({
+        code,
+        cartTotal: subtotal,
+        products: selectedItems.map((it) => it.productId)
+      });
+      const c = res?.data?.coupon;
+      if (!c) throw new Error('Invalid coupon');
+      const d = Math.min(Number(c.discount || 0), subtotal);
       setDiscount(Number(d.toFixed(2)));
-      setCouponStatus('10% off applied');
-      return;
+      setAppliedCoupon({ code: c.code, discount: Number(d.toFixed(2)), discountType: c.discountType, discountValue: c.discountValue });
+      const label = c.discountType === 'percentage'
+        ? `${c.discountValue}% off applied`
+        : `${formatPrice(c.discount, currency)} off applied`;
+      setCouponStatus(label);
+    } catch (err) {
+      setAppliedCoupon(null);
+      setDiscount(0);
+      const msg = err?.response?.data?.message || 'Invalid coupon';
+      setCouponStatus(msg);
     }
-    if (code === 'SAVE20') {
-      const d = Math.min(subtotal * 0.20, subtotal);
-      setDiscount(Number(d.toFixed(2)));
-      setCouponStatus('20% off applied');
-      return;
-    }
-    if (code === 'FLAT50') {
-      const d = Math.min(50, subtotal);
-      setDiscount(Number(d.toFixed(2)));
-      setCouponStatus(`${formatPrice(50, currency)} off applied`);
-      return;
-    }
-    setDiscount(0);
-    setCouponStatus('Invalid coupon');
   };
 
   const clearCoupon = () => {
     setCouponCode('');
     setDiscount(0);
     setCouponStatus('');
+    setAppliedCoupon(null);
   };
 
   const handleSubmit = async (e) => {
@@ -133,7 +137,8 @@ const Checkout = () => {
           tax,
           discount,
           total
-        }
+        },
+        ...(appliedCoupon ? { coupon: { code: appliedCoupon.code, discount: discount } } : {})
       };
 
       const response = await ordersAPI.create(orderData);
