@@ -81,6 +81,33 @@ const ProductPreviewModal = ({ isOpen, onClose, product }) => {
                   </div>
                 </div>
 
+                {/* Shipping Info */}
+                {product.shipping && (
+                  <div className="border-t pt-6">
+                    <h3 className="text-sm font-medium text-gray-900 mb-3">Shipping</h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      {typeof product.shipping.weight === 'number' && (
+                        <div>
+                          <span className="text-gray-500">Weight:</span>
+                          <span className="ml-2 font-medium text-gray-900">{product.shipping.weight} kg</span>
+                        </div>
+                      )}
+                      {product.shipping.dimensions && (
+                        <div>
+                          <span className="text-gray-500">Dimensions:</span>
+                          <span className="ml-2 font-medium text-gray-900">
+                            {product.shipping.dimensions.length} × {product.shipping.dimensions.width} × {product.shipping.dimensions.height} cm
+                          </span>
+                        </div>
+                      )}
+                      <div>
+                        <span className="text-gray-500">Free Shipping:</span>
+                        <span className="ml-2 font-medium text-gray-900">{product.shipping.freeShipping ? 'Yes' : 'No'}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Price */}
                 <div className="flex items-center space-x-4">
                   <span className="text-3xl font-bold text-gray-900">{formatPrice(product.price, product.currency)}</span>
