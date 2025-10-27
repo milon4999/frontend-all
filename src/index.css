@@ -127,3 +127,21 @@ code {
 .animate-pulse-slow {
   animation: pulse-slow 2s ease-in-out infinite;
 }
+
+/* Collapse Transition */
+.collapse-enter {
+  max-height: 0;
+  overflow: hidden;
+}
+.collapse-enter-active {
+  max-height: 500px; /* Adjust to fit content */
+  transition: max-height 300ms ease-in-out;
+}
+.collapse-exit {
+  max-height: 500px; /* Adjust to fit content */
+}
+.collapse-exit-active {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 300ms ease-in-out;
+}

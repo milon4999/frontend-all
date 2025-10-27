@@ -8,6 +8,8 @@ import { addToCart } from '../store/slices/cartSlice';
 import { addToWishlist } from '../store/slices/wishlistSlice';
 import { toast } from 'react-toastify';
 import { formatPrice } from '../utils/currency';
+import { useSwipe } from '../hooks/useSwipe';
+import CollapsibleSection from '../components/common/CollapsibleSection';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -24,6 +26,13 @@ const ProductDetail = () => {
   const [isWishlisted] = useState(false);
   const [recommendedProducts, setRecommendedProducts] = useState([]);
   const [recommendedLoading, setRecommendedLoading] = useState(true);
+  const [openSection, setOpenSection] = useState('description');
+
+  const { 
+    currentIndex: currentImageIndex, 
+    setCurrentIndex: setSelectedImageIndex, 
+    ...swipeHandlers 
+  } = useSwipe(product?.images?.length || 0);
 
   useEffect(() => {
     // Scroll to top immediately when component mounts or product ID changes
@@ -49,6 +58,10 @@ const ProductDetail = () => {
     
     fetchRecommended();
   }, [dispatch, id]);
+
+  useEffect(() => {
+    setSelectedImage(currentImageIndex);
+  }, [currentImageIndex]);
 
   // Additional scroll to top on component mount to ensure it always works
   useEffect(() => {
@@ -223,57 +236,61 @@ const ProductDetail = () => {
       <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-12">
           {/* Product Images */}
-          <div className="space-y-2 md:space-y-4">
-            {/* Main Image */}
-            <div className="relative bg-white rounded-2xl overflow-hidden shadow-lg">
-              <img
-                src={product.images[selectedImage]?.url || 'https://via.placeholder.com/600'}
-                alt={product.name}
-                className="w-full h-96 lg:h-[500px] object-cover cursor-zoom-in"
-                onClick={() => setShowImageModal(true)}
-              />
-              {(product.featured || (product.comparePrice && Number(product.comparePrice) > Number(product.price))) && (
-                <div className="absolute top-4 left-4 flex flex-col gap-2">
-                  {product.featured && (
-                    <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center">
-                      <Star className="h-4 w-4 mr-1" />
-                      Featured
-                    </span>
-                  )}
-                  {product.comparePrice && Number(product.comparePrice) > Number(product.price) && (
-                    <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                      -{Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)}%
-                    </span>
-                  )}
+          <div className="relative overflow-hidden">
+            {/* Swipeable Image Carousel */}
+            <div 
+              className="flex transition-transform duration-300 ease-in-out" 
+              style={{ transform: `translateX(-${selectedImage * 100}%)` }}
+              {...swipeHandlers}
+            >
+              {product.images.map((img, idx) => (
+                <div key={idx} className="flex-shrink-0 w-full">
+                  <div className="relative bg-white rounded-2xl overflow-hidden shadow-lg">
+                    <img
+                      src={img.url || 'https://via.placeholder.com/600'}
+                      alt={`${product.name} ${idx + 1}`}
+                      className="w-full h-96 lg:h-[500px] object-cover cursor-zoom-in"
+                      onClick={() => setShowImageModal(true)}
+                    />
+                  </div>
                 </div>
-              )}
-              {product.comparePrice && Number(product.comparePrice) > Number(product.price) && (
-                <div className="absolute top-4 right-4">
-                  <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                    Save {formatPrice(product.comparePrice - product.price, product.currency)}
-                  </span>
-                </div>
-              )}
+              ))}
             </div>
 
-            {/* Thumbnail Images */}
-            <div className="flex space-x-1 md:space-x-2 overflow-x-auto pb-2">
-              {product.images.map((img, idx) => (
+            {/* Badges */}
+            {(product.featured || (product.comparePrice && Number(product.comparePrice) > Number(product.price))) && (
+              <div className="absolute top-4 left-4 flex flex-col gap-2">
+                {product.featured && (
+                  <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center">
+                    <Star className="h-4 w-4 mr-1" />
+                    Featured
+                  </span>
+                )}
+                {product.comparePrice && Number(product.comparePrice) > Number(product.price) && (
+                  <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                    -{Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)}%
+                  </span>
+                )}
+              </div>
+            )}
+            {product.comparePrice && Number(product.comparePrice) > Number(product.price) && (
+              <div className="absolute top-4 right-4">
+                <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                  Save {formatPrice(product.comparePrice - product.price, product.currency)}
+                </span>
+              </div>
+            )}
+
+            {/* Carousel Dots */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+              {product.images.map((_, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setSelectedImage(idx)}
-                  className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                    selectedImage === idx 
-                      ? 'border-blue-500 ring-2 ring-blue-200' 
-                      : 'border-gray-200 hover:border-gray-300'
+                  onClick={() => setSelectedImageIndex(idx)}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    selectedImage === idx ? 'bg-blue-500 scale-125' : 'bg-gray-300'
                   }`}
-                >
-                  <img
-                    src={img.url}
-                    alt={`${product.name} ${idx + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
+                />
               ))}
             </div>
           </div>
@@ -461,8 +478,8 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        {/* Product Details Tabs */}
-        <div className="mt-6 md:mt-16">
+        {/* Product Details Tabs for Desktop */}
+        <div className="hidden md:block mt-16">
           <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
             {/* Tab Navigation */}
             <div className="border-b overflow-x-auto">
@@ -476,7 +493,7 @@ const ProductDetail = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                    className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                       activeTab === tab.id
                         ? 'border-blue-500 text-blue-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -489,7 +506,7 @@ const ProductDetail = () => {
             </div>
 
             {/* Tab Content */}
-            <div className="p-4 md:p-8">
+            <div className="p-8">
               {activeTab === 'description' && (
                 <div className="prose max-w-none">
                   <p className="text-gray-700 leading-relaxed text-lg">{product.description}</p>
@@ -529,6 +546,18 @@ const ProductDetail = () => {
                         <dt className="text-gray-500">Stock</dt>
                         <dd className="font-medium">{product.inventory?.stock || 0} units</dd>
                       </div>
+                      {product.shipping?.weight && (
+                        <div className="flex justify-between">
+                          <dt className="text-gray-500">Weight</dt>
+                          <dd className="font-medium">{product.shipping.weight} kg</dd>
+                        </div>
+                      )}
+                      {product.shipping?.dimensions && (
+                        <div className="flex justify-between">
+                          <dt className="text-gray-500">Dimensions</dt>
+                          <dd className="font-medium">{product.shipping.dimensions.length} x {product.shipping.dimensions.width} x {product.shipping.dimensions.height} cm</dd>
+                        </div>
+                      )}
                     </dl>
                   </div>
                 </div>
@@ -557,6 +586,73 @@ const ProductDetail = () => {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Collapsible Sections for Mobile */}
+        <div className="md:hidden mt-6 space-y-2">
+          <CollapsibleSection
+            title="Description"
+            isOpen={openSection === 'description'}
+            onToggle={() => setOpenSection(openSection === 'description' ? null : 'description')}
+          >
+            <div className="prose max-w-none">
+              <p className="text-gray-700 leading-relaxed">{product.description}</p>
+              {product.tags && product.tags.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="font-semibold text-gray-900 mb-2">Tags</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {product.tags.map((tag, index) => (
+                      <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-700">
+                        <Tag className="h-3 w-3 mr-1" />
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="Specifications"
+            isOpen={openSection === 'specifications'}
+            onToggle={() => setOpenSection(openSection === 'specifications' ? null : 'specifications')}
+          >
+            <dl className="space-y-2 text-sm">
+              <div className="flex justify-between"><dt className="text-gray-500">SKU</dt><dd className="font-medium">{product.inventory?.sku || 'N/A'}</dd></div>
+              <div className="flex justify-between"><dt className="text-gray-500">Category</dt><dd className="font-medium">{product.category?.name || 'N/A'}</dd></div>
+              <div className="flex justify-between"><dt className="text-gray-500">Stock</dt><dd className="font-medium">{product.inventory?.stock || 0} units</dd></div>
+              {product.shipping?.weight && (
+                <div className="flex justify-between"><dt className="text-gray-500">Weight</dt><dd className="font-medium">{product.shipping.weight} kg</dd></div>
+              )}
+              {product.shipping?.dimensions && (
+                <div className="flex justify-between"><dt className="text-gray-500">Dimensions</dt><dd className="font-medium">{product.shipping.dimensions.length} x {product.shipping.dimensions.width} x {product.shipping.dimensions.height} cm</dd></div>
+              )}
+            </dl>
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="Reviews"
+            isOpen={openSection === 'reviews'}
+            onToggle={() => setOpenSection(openSection === 'reviews' ? null : 'reviews')}
+          >
+            <div className="text-center py-6">
+              <Star className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+              <h3 className="font-medium text-gray-900">No reviews yet</h3>
+            </div>
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="Shipping"
+            isOpen={openSection === 'shipping'}
+            onToggle={() => setOpenSection(openSection === 'shipping' ? null : 'shipping')}
+          >
+            <div className="space-y-2 text-sm text-gray-700">
+              <p>• Free shipping over {formatPrice(50, product.currency || 'USD')}</p>
+              <p>• Standard: 3-5 business days</p>
+              <p>• Express: 1-2 business days</p>
+            </div>
+          </CollapsibleSection>
         </div>
       </div>
 

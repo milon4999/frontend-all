@@ -7,14 +7,16 @@ import {
   Package, Heart, ShoppingBag, Settings, Shield,
   CreditCard, Bell, LogOut, X
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { getAdminSettings } from '../utils/settings';
 import { formatPrice } from '../utils/currency';
 import { usersAPI } from '../services/api';
-import { getMe } from '../store/slices/authSlice';
+import { getMe, logout } from '../store/slices/authSlice';
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
   const { items: wishlistItems } = useSelector((state) => state.wishlist);
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState('overview');
   const [orders, setOrders] = useState([]);
@@ -502,7 +504,13 @@ const Profile = () => {
                   </div>
                   <span className="text-gray-400">→</span>
                 </button>
-                <button className="w-full flex items-center justify-between p-4 bg-red-50 rounded-lg hover:bg-red-100 transition text-red-600">
+                <button 
+                  onClick={() => {
+                    dispatch(logout());
+                    navigate('/login');
+                  }}
+                  className="w-full flex items-center justify-between p-4 bg-red-50 rounded-lg hover:bg-red-100 transition text-red-600"
+                >
                   <div className="flex items-center space-x-3">
                     <LogOut className="h-5 w-5" />
                     <span className="font-semibold">Logout</span>
