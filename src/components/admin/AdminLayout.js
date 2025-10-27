@@ -79,6 +79,7 @@ const AdminLayout = ({ children }) => {
         <nav className="flex-1 mt-6 px-3 overflow-y-auto pb-24">
           <div className="space-y-1">
             {navigation.map((item) => {
+              if (item.name === 'Users' && user?.role !== 'admin') return null;
               const isActive = location.pathname === item.href;
               return (
                 <Link

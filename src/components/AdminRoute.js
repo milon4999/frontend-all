@@ -1,14 +1,14 @@
 import { Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
-const AdminRoute = ({ children }) => {
+const AdminRoute = ({ children, roles = ['admin', 'editor'] }) => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
 
-  if (user?.role !== 'admin' && user?.role !== 'editor') {
+  if (!roles.includes(user?.role)) {
     return <Navigate to="/" />;
   }
 
