@@ -1,22 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { 
   User, Phone, Calendar, MapPin, Edit2, 
   Package, Heart, ShoppingBag, Settings, Shield,
-  CreditCard, Bell, LogOut
+  CreditCard, Bell, LogOut, X
 } from 'lucide-react';
 import { getAdminSettings } from '../utils/settings';
 import { formatPrice } from '../utils/currency';
+import { usersAPI } from '../services/api';
+import { getMe } from '../store/slices/authSlice';
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
   const { items: wishlistItems } = useSelector((state) => state.wishlist);
+  const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState('overview');
   const [orders, setOrders] = useState([]);
   const [totalSpent, setTotalSpent] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: user?.name || '',
+    phone: user?.phone || '',
+    avatar: user?.avatar || '',
+  });
+  const [avatarPreview, setAvatarPreview] = useState(user?.avatar || '');
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -50,12 +62,69 @@ const Profile = () => {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        phone: user.phone || '',
+        avatar: user.avatar || '',
+      });
+      setAvatarPreview(user.avatar || '');
+    }
+  }, [user]);
+
   const tabs = [
     { id: 'overview', label: 'Overview', icon: User },
     { id: 'orders', label: 'Orders', icon: Package },
     { id: 'wishlist', label: 'Wishlist', icon: Heart },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
+
+  const openEditModal = () => {
+    setSaveError('');
+    setFormData({
+      name: user?.name || '',
+      phone: user?.phone || '',
+      avatar: user?.avatar || '',
+    });
+    setAvatarPreview(user?.avatar || '');
+    setIsEditModalOpen(true);
+  };
+
+  const closeEditModal = () => {
+    if (!savingProfile) {
+      setIsEditModalOpen(false);
+    }
+  };
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === 'avatar') {
+      setAvatarPreview(value);
+    }
+  };
+
+  const handleSubmitProfile = async (event) => {
+    event.preventDefault();
+    setSaveError('');
+    setSavingProfile(true);
+
+    try {
+      await usersAPI.updateProfile({
+        name: formData.name,
+        phone: formData.phone,
+        avatar: formData.avatar,
+      });
+
+      await dispatch(getMe());
+      setIsEditModalOpen(false);
+    } catch (error) {
+      setSaveError(error.response?.data?.message || 'Failed to update profile');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   // Format member since date
   const getMemberSince = () => {
@@ -131,7 +200,18 @@ const Profile = () => {
     <div className="min-h-screen bg-gray-50 pt-2 md:pt-0 pb-20 md:pb-0">
       {/* Header/Banner */}
       <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-12">
+        <div className="relative max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-12">
+          {user?.role === 'admin' && (
+            <div className="sm:hidden absolute top-4 right-3">
+              <Link
+                to="/admin/dashboard"
+                className="inline-flex items-center space-x-2 bg-white text-primary-600 px-3 py-2 rounded-full text-sm font-semibold shadow-md hover:bg-white/90 transition"
+              >
+                <Shield className="h-4 w-4" />
+                <span>Dashboard</span>
+              </Link>
+            </div>
+          )}
           <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
             {/* Avatar */}
             <div className="relative">
@@ -140,7 +220,11 @@ const Profile = () => {
                 alt={user?.name}
                 className="w-20 h-20 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-xl object-cover"
               />
-              <button className="absolute bottom-0 right-0 bg-white text-primary-600 p-2 rounded-full shadow-lg hover:bg-gray-100 transition">
+              <button
+                type="button"
+                onClick={openEditModal}
+                className="absolute bottom-0 right-0 bg-white text-primary-600 p-2 rounded-full shadow-lg hover:bg-gray-100 transition"
+              >
                 <Edit2 className="h-4 w-4" />
               </button>
             </div>
@@ -173,6 +257,105 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/50" onClick={closeEditModal} />
+          <div
+            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Edit Profile</h2>
+                <p className="text-sm text-gray-500">Update your personal details</p>
+              </div>
+              <button
+                type="button"
+                onClick={closeEditModal}
+                className="text-gray-400 hover:text-gray-600"
+                disabled={savingProfile}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitProfile} className="space-y-5">
+              <div className="flex items-center space-x-4">
+                <img
+                  src={
+                    avatarPreview ||
+                    'https://ui-avatars.com/api/?name=' +
+                      encodeURIComponent(formData.name || user?.name || 'User') +
+                      '&size=200&background=4F46E5&color=fff&bold=true'
+                  }
+                  alt="Avatar preview"
+                  className="w-16 h-16 rounded-full object-cover border border-gray-200"
+                />
+                <div>
+                  <label className="text-xs font-semibold uppercase text-gray-500">Avatar URL</label>
+                  <input
+                    type="url"
+                    name="avatar"
+                    value={formData.avatar}
+                    onChange={handleInputChange}
+                    placeholder="https://..."
+                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold uppercase text-gray-500">Full Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold uppercase text-gray-500">Phone Number</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Enter phone number"
+                />
+              </div>
+
+              {saveError && (
+                <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                  {saveError}
+                </p>
+              )}
+
+              <div className="flex items-center justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={closeEditModal}
+                  className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
+                  disabled={savingProfile}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-lg bg-primary-600 text-white font-semibold hover:bg-primary-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                  disabled={savingProfile}
+                >
+                  {savingProfile ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 -mt-6 sm:-mt-8">

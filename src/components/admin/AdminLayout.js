@@ -76,7 +76,7 @@ const AdminLayout = ({ children }) => {
           </button>
         </div>
 
-        <nav className="flex-1 mt-6 px-3 overflow-y-auto">
+        <nav className="flex-1 mt-6 px-3 overflow-y-auto pb-24">
           <div className="space-y-1">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href;
