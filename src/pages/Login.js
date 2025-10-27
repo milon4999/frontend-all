@@ -115,9 +115,9 @@ const Login = () => {
                 </label>
               </div>
               <div className="text-sm">
-                <a href="#" className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                <button type="button" className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
                   Forgot password?
-                </a>
+                </button>
               </div>
             </div>
 
@@ -171,9 +171,9 @@ const Login = () => {
         {/* Footer */}
         <div className="mt-6 md:mt-8 text-center text-xs md:text-sm text-gray-500 px-2">
           By signing in, you agree to our{' '}
-          <a href="#" className="text-blue-600 hover:text-blue-500">Terms of Service</a>
+          <button type="button" className="text-blue-600 hover:text-blue-500 underline">Terms of Service</button>
           {' '}and{' '}
-          <a href="#" className="text-blue-600 hover:text-blue-500">Privacy Policy</a>
+          <button type="button" className="text-blue-600 hover:text-blue-500 underline">Privacy Policy</button>
         </div>
       </div>
     </div>

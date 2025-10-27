@@ -672,6 +672,59 @@ const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
               </div>
             </div>
 
+            {/* SEO */}
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h4 className="font-medium text-gray-900">SEO</h4>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Meta Title</label>
+                  <input
+                    type="text"
+                    name="seo.metaTitle"
+                    value={formData.seo.metaTitle}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Meta Description</label>
+                  <textarea
+                    name="seo.metaDescription"
+                    value={formData.seo.metaDescription}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Meta Keywords</label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {formData.seo.metaKeywords.map((kw, i) => (
+                      <span key={i} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        {kw}
+                        <button type="button" className="ml-1 text-purple-600 hover:text-purple-800" onClick={() => removeKeyword(kw)}>
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex mt-2">
+                    <input
+                      type="text"
+                      value={newKeyword}
+                      onChange={(e) => setNewKeyword(e.target.value)}
+                      placeholder="Add keyword"
+                      className="flex-1 rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
+                    />
+                    <button type="button" onClick={addKeyword} className="px-3 py-2 bg-purple-500 text-white rounded-r-md hover:bg-purple-600">
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
               <button
                 type="submit"
