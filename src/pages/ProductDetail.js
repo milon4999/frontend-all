@@ -78,13 +78,18 @@ const ProductDetail = () => {
       .map(([key, value]) => `${key}: ${value}`)
       .join(', ');
 
+    // Pick image based on selected Color (fallback to first image)
+    const selectedColor = (selectedVariants['Color'] || selectedVariants['color'] || '').toLowerCase();
+    const colorImage = (product.images || []).find(img => String(img.color || '').toLowerCase() === selectedColor)?.url;
+    const chosenImage = colorImage || product.images[0]?.url;
+
     dispatch(addToCart({
       productId: product._id,
       name: product.name,
       price: product.price,
       comparePrice: product.comparePrice,
       currency: product.currency,
-      image: product.images[0]?.url,
+      image: chosenImage,
       quantity,
       variant: variantString
     }));
@@ -96,13 +101,19 @@ const ProductDetail = () => {
     const variantString = Object.entries(selectedVariants)
       .map(([key, value]) => `${key}: ${value}`)
       .join(', ');
+
+    // Pick image based on selected Color (fallback to first image)
+    const selectedColor = (selectedVariants['Color'] || selectedVariants['color'] || '').toLowerCase();
+    const colorImage = (product.images || []).find(img => String(img.color || '').toLowerCase() === selectedColor)?.url;
+    const chosenImage = colorImage || product.images[0]?.url;
+
     const buyNowItem = {
       productId: product._id,
       name: product.name,
       price: product.price,
       comparePrice: product.comparePrice,
       currency: product.currency,
-      image: product.images[0]?.url,
+      image: chosenImage,
       quantity,
       variant: variantString
     };
@@ -452,7 +463,7 @@ const ProductDetail = () => {
             </div>
 
             {/* Features */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-4">
+            <div className="hidden md:grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-4">
               <div className="flex items-center space-x-2 md:space-x-3 p-2 md:p-4 bg-white rounded-lg shadow-sm border">
                 <Truck className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
                 <div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2 } from 'lucide-react';
+import { X, Plus, Trash2, ArrowUp, ArrowDown, Star } from 'lucide-react';
 import { productsAPI, categoriesAPI, uploadAPI } from '../../services/api';
 import { toast } from 'react-toastify';
 
@@ -40,6 +40,7 @@ const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
   const [newKeyword, setNewKeyword] = useState('');
   const [newVariantName, setNewVariantName] = useState('');
   const [variantOptionInputs, setVariantOptionInputs] = useState({});
+  const [imageColorInputs, setImageColorInputs] = useState({});
 
   useEffect(() => {
     if (isOpen) {
@@ -180,6 +181,39 @@ const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
     });
   };
 
+  // Ensure a 'Color' variant exists and optionally add a new color option
+  const ensureColorVariant = (newColor) => {
+    setFormData(prev => {
+      const next = { ...prev };
+      const variants = [...(next.variants || [])];
+      let idx = variants.findIndex(v => String(v.name || '').toLowerCase() === 'color');
+      if (idx === -1) {
+        variants.push({ name: 'Color', options: [] });
+        idx = variants.length - 1;
+      }
+      if (newColor) {
+        const opt = String(newColor).trim();
+        const opts = Array.from(new Set([...(variants[idx].options || []), opt]));
+        variants[idx] = { ...variants[idx], options: opts };
+      }
+      next.variants = variants;
+      return next;
+    });
+  };
+
+  // Create a new color option from the images section and assign it to this image
+  const addColorForImage = (index) => {
+    const val = String(imageColorInputs[index] || '').trim();
+    if (!val) return;
+    ensureColorVariant(val);
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.map((img, i) => (i === index ? { ...img, color: val } : img))
+    }));
+    setImageColorInputs(prev => ({ ...prev, [index]: '' }));
+    toast.success('Color added');
+  };
+
   const handleImageFile = async (index, file) => {
     if (!file) return;
     try {
@@ -222,9 +256,30 @@ const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
     }
   };
 
+  const moveImage = (from, to) => {
+    setFormData(prev => {
+      const imgs = [...prev.images];
+      if (from < 0 || to < 0 || from >= imgs.length || to >= imgs.length) return prev;
+      const [m] = imgs.splice(from, 1);
+      imgs.splice(to, 0, m);
+      return { ...prev, images: imgs };
+    });
+  };
 
+  const setPrimaryImage = (index) => {
+    if (index <= 0) return;
+    moveImage(index, 0);
+  };
 
+  const moveImageUp = (index) => {
+    if (index <= 0) return;
+    moveImage(index, index - 1);
+  };
 
+  const moveImageDown = (index) => {
+    if (index >= formData.images.length - 1) return;
+    moveImage(index, index + 1);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -501,23 +556,106 @@ const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
                     <label className="block text-sm font-medium text-gray-700">Product Images</label>
                     {formData.images.map((image, index) => (
                       <div key={index} className="flex flex-col sm:flex-row gap-2 mt-2">
-                        <div className="flex-1 flex gap-2">
-                          <input
-                            type="url"
-                            placeholder="Image URL"
-                            value={image.url}
-                            onChange={(e) => updateImage(index, 'url', e.target.value)}
-                            className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                          />
-                          <input
-                            type="text"
-                            placeholder="Alt text"
-                            value={image.alt}
-                            onChange={(e) => updateImage(index, 'alt', e.target.value)}
-                            className="w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                          />
+                        <div className="flex-1 flex items-start gap-2">
+                          <div className="relative">
+                            {image.url ? (
+                              <img
+                                src={image.url}
+                                alt={image.alt || 'preview'}
+                                className="w-12 h-12 rounded object-cover border"
+                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded border flex items-center justify-center text-[10px] text-gray-400">No
+                              </div>
+                            )}
+                            {index === 0 && (
+                              <span className="absolute -top-1 -right-1 bg-yellow-400 text-white text-[10px] px-1 rounded">Primary</span>
+                            )}
+                          </div>
+                          <div className="flex-1 flex gap-2">
+                            <input
+                              type="url"
+                              placeholder="Image URL"
+                              value={image.url}
+                              onChange={(e) => updateImage(index, 'url', e.target.value)}
+                              className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Alt text"
+                              value={image.alt}
+                              onChange={(e) => updateImage(index, 'alt', e.target.value)}
+                              className="w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            />
+                            {(((formData.variants || []).find(v => String(v.name || '').toLowerCase() === 'color')?.options) || []).length > 0 ? (
+                              <>
+                                <select
+                                  value={image.color || ''}
+                                  onChange={(e) => updateImage(index, 'color', e.target.value)}
+                                  className="w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                  title="Color variant for this image"
+                                >
+                                  <option value="">Color</option>
+                                  {((formData.variants || []).find(v => String(v.name || '').toLowerCase() === 'color')?.options || []).map((opt) => (
+                                    <option key={opt} value={opt}>{opt}</option>
+                                  ))}
+                                </select>
+                                <div className="flex items-center gap-1">
+                                  <input
+                                    type="text"
+                                    placeholder="New color"
+                                    value={imageColorInputs[index] || ''}
+                                    onChange={(e) => setImageColorInputs(prev => ({ ...prev, [index]: e.target.value }))}
+                                    className="w-28 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                                    title="Create a new color option"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => addColorForImage(index)}
+                                    className="px-2 py-1 rounded-md text-sm bg-gray-100 hover:bg-gray-200"
+                                    title="Add color option"
+                                  >
+                                    Add
+                                  </button>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="text"
+                                  placeholder="Color (optional)"
+                                  value={image.color || ''}
+                                  onChange={(e) => updateImage(index, 'color', e.target.value)}
+                                  className="w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                  title="Type a color and click Create to add as a Color variant"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const val = String(image.color || '').trim();
+                                    if (!val) return;
+                                    ensureColorVariant(val);
+                                    toast.success('Color added');
+                                  }}
+                                  className="px-2 py-1 rounded-md text-sm bg-gray-100 hover:bg-gray-200"
+                                >
+                                  Create
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                         <div className="flex items-center gap-2">
+                          <button type="button" onClick={() => setPrimaryImage(index)} disabled={index === 0} className="p-2 rounded hover:bg-gray-100 disabled:opacity-50" title="Set primary">
+                            <Star className={`h-4 w-4 ${index === 0 ? 'text-yellow-500' : 'text-gray-700'}`} />
+                          </button>
+                          <button type="button" onClick={() => moveImageUp(index)} disabled={index === 0} className="p-2 rounded hover:bg-gray-100 disabled:opacity-50" title="Move up">
+                            <ArrowUp className="h-4 w-4" />
+                          </button>
+                          <button type="button" onClick={() => moveImageDown(index)} disabled={index === formData.images.length - 1} className="p-2 rounded hover:bg-gray-100 disabled:opacity-50" title="Move down">
+                            <ArrowDown className="h-4 w-4" />
+                          </button>
                           <input
                             type="file"
                             accept="image/*"
@@ -529,6 +667,7 @@ const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
                               type="button"
                               onClick={() => removeImage(index)}
                               className="px-2 py-2 text-red-600 hover:text-red-800"
+                              title="Remove image"
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>

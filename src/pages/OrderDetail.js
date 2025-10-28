@@ -71,7 +71,12 @@ const OrderDetail = () => {
         <div className="space-y-4">
           {order.items.map((item, idx) => (
             <div key={idx} className="flex items-center space-x-4 border-b pb-4">
-              <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded" />
+              <img
+                src={item.image || item.product?.images?.[0]?.url}
+                alt={item.name}
+                className="w-20 h-20 object-cover rounded"
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              />
               <div className="flex-1">
                 <h3 className="font-semibold">{item.name}</h3>
                 {item.variant && <p className="text-sm text-gray-600">{item.variant}</p>}

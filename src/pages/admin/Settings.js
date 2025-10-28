@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { toast } from 'react-toastify';
 import { uploadAPI, settingsAPI } from '../../services/api';
-import { Settings as SettingsIcon, CreditCard, Truck, Palette, Bell, Upload, Save, Image as ImageIcon, Facebook } from 'lucide-react';
+import { Settings as SettingsIcon, CreditCard, Truck, Palette, Bell, Upload, Save, Image as ImageIcon, Facebook, Receipt } from 'lucide-react';
 
 const tabs = [
   { key: 'general', label: 'General', Icon: SettingsIcon },
   { key: 'payments', label: 'Payments', Icon: CreditCard },
   { key: 'shipping', label: 'Shipping', Icon: Truck },
+  { key: 'tax', label: 'Tax', Icon: Receipt },
   { key: 'appearance', label: 'Appearance', Icon: Palette },
   { key: 'social', label: 'Social', Icon: Facebook },
   { key: 'notifications', label: 'Notifications', Icon: Bell }
@@ -35,7 +36,25 @@ const defaultSettings = {
   shipping: {
     enableFreeShipping: false,
     freeShippingThreshold: 0,
-    flatRate: 0
+    flatRate: 0,
+    methods: {
+      standard: {
+        enabled: true,
+        name: 'Standard',
+        price: 10,
+        freeAbove: 50
+      },
+      express: {
+        enabled: true,
+        name: 'Express',
+        price: 20,
+        freeAbove: 0
+      }
+    }
+  },
+  tax: {
+    enabled: true,
+    rate: 10
   },
   notifications: {
     orderEmails: true,
@@ -77,7 +96,7 @@ const Settings = () => {
       const res = await settingsAPI.update(settings);
       const saved = res?.data?.settings || settings;
       localStorage.setItem('admin_settings', JSON.stringify(saved));
-      localStorage.setItem('public_settings', JSON.stringify({ social: saved.social || {}, payments: saved.payments || {}, updatedAt: new Date().toISOString() }));
+      localStorage.setItem('public_settings', JSON.stringify({ social: saved.social || {}, payments: saved.payments || {}, tax: saved.tax || {}, shipping: saved.shipping || {}, updatedAt: new Date().toISOString() }));
       toast.success('Settings saved');
     } catch (_) {
       toast.error('Failed to save settings');
@@ -210,11 +229,155 @@ const Settings = () => {
 
   const Shipping = () => (
     <div className="space-y-6">
-      <Section title="Rates">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Switch label="Enable Free Shipping" checked={settings.shipping.enableFreeShipping} onChange={(v) => setSettings({ ...settings, shipping: { ...settings.shipping, enableFreeShipping: v } })} />
-          <Input label="Free Shipping Threshold" type="number" value={settings.shipping.freeShippingThreshold} onChange={(e) => setSettings({ ...settings, shipping: { ...settings.shipping, freeShippingThreshold: Number(e.target.value) } })} />
-          <Input label="Flat Rate" type="number" value={settings.shipping.flatRate} onChange={(e) => setSettings({ ...settings, shipping: { ...settings.shipping, flatRate: Number(e.target.value) } })} />
+      <Section title="Delivery Methods">
+        <div className="space-y-6">
+          {/* Standard Delivery */}
+          <div className="border rounded-lg p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold text-gray-900">Standard Delivery</h4>
+              <Switch 
+                label="" 
+                checked={settings.shipping.methods?.standard?.enabled ?? true} 
+                onChange={(v) => setSettings({ 
+                  ...settings, 
+                  shipping: { 
+                    ...settings.shipping, 
+                    methods: { 
+                      ...settings.shipping.methods, 
+                      standard: { ...settings.shipping.methods?.standard, enabled: v } 
+                    } 
+                  } 
+                })} 
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Input 
+                label="Display Name" 
+                value={settings.shipping.methods?.standard?.name || 'Standard'} 
+                onChange={(e) => setSettings({ 
+                  ...settings, 
+                  shipping: { 
+                    ...settings.shipping, 
+                    methods: { 
+                      ...settings.shipping.methods, 
+                      standard: { ...settings.shipping.methods?.standard, name: e.target.value } 
+                    } 
+                  } 
+                })} 
+              />
+              <Input 
+                label="Price" 
+                type="number" 
+                min="0" 
+                step="0.01"
+                value={settings.shipping.methods?.standard?.price ?? 10} 
+                onChange={(e) => setSettings({ 
+                  ...settings, 
+                  shipping: { 
+                    ...settings.shipping, 
+                    methods: { 
+                      ...settings.shipping.methods, 
+                      standard: { ...settings.shipping.methods?.standard, price: Number(e.target.value) } 
+                    } 
+                  } 
+                })} 
+              />
+              <Input 
+                label="Free Above (Subtotal)" 
+                type="number" 
+                min="0" 
+                step="0.01"
+                value={settings.shipping.methods?.standard?.freeAbove ?? 50} 
+                onChange={(e) => setSettings({ 
+                  ...settings, 
+                  shipping: { 
+                    ...settings.shipping, 
+                    methods: { 
+                      ...settings.shipping.methods, 
+                      standard: { ...settings.shipping.methods?.standard, freeAbove: Number(e.target.value) } 
+                    } 
+                  } 
+                })} 
+              />
+            </div>
+          </div>
+
+          {/* Express Delivery */}
+          <div className="border rounded-lg p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold text-gray-900">Express Delivery</h4>
+              <Switch 
+                label="" 
+                checked={settings.shipping.methods?.express?.enabled ?? true} 
+                onChange={(v) => setSettings({ 
+                  ...settings, 
+                  shipping: { 
+                    ...settings.shipping, 
+                    methods: { 
+                      ...settings.shipping.methods, 
+                      express: { ...settings.shipping.methods?.express, enabled: v } 
+                    } 
+                  } 
+                })} 
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Input 
+                label="Display Name" 
+                value={settings.shipping.methods?.express?.name || 'Express'} 
+                onChange={(e) => setSettings({ 
+                  ...settings, 
+                  shipping: { 
+                    ...settings.shipping, 
+                    methods: { 
+                      ...settings.shipping.methods, 
+                      express: { ...settings.shipping.methods?.express, name: e.target.value } 
+                    } 
+                  } 
+                })} 
+              />
+              <Input 
+                label="Price" 
+                type="number" 
+                min="0" 
+                step="0.01"
+                value={settings.shipping.methods?.express?.price ?? 20} 
+                onChange={(e) => setSettings({ 
+                  ...settings, 
+                  shipping: { 
+                    ...settings.shipping, 
+                    methods: { 
+                      ...settings.shipping.methods, 
+                      express: { ...settings.shipping.methods?.express, price: Number(e.target.value) } 
+                    } 
+                  } 
+                })} 
+              />
+              <Input 
+                label="Free Above (Subtotal)" 
+                type="number" 
+                min="0" 
+                step="0.01"
+                value={settings.shipping.methods?.express?.freeAbove ?? 0} 
+                onChange={(e) => setSettings({ 
+                  ...settings, 
+                  shipping: { 
+                    ...settings.shipping, 
+                    methods: { 
+                      ...settings.shipping.methods, 
+                      express: { ...settings.shipping.methods?.express, freeAbove: Number(e.target.value) } 
+                    } 
+                  } 
+                })} 
+              />
+            </div>
+          </div>
+        </div>
+        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800">
+            <strong>Note:</strong> Set "Free Above" to 0 to never offer free shipping for that method. 
+            Disabled methods will not appear in checkout.
+          </p>
         </div>
       </Section>
     </div>
@@ -252,6 +415,36 @@ const Settings = () => {
           <Input label="Sender Email" type="email" value={settings.notifications.senderEmail} onChange={(e) => setSettings({ ...settings, notifications: { ...settings.notifications, senderEmail: e.target.value } })} />
           <Switch label="Order Emails" checked={settings.notifications.orderEmails} onChange={(v) => setSettings({ ...settings, notifications: { ...settings.notifications, orderEmails: v } })} />
           <Switch label="Low Stock Emails" checked={settings.notifications.lowStockEmails} onChange={(v) => setSettings({ ...settings, notifications: { ...settings.notifications, lowStockEmails: v } })} />
+        </div>
+      </Section>
+    </div>
+  );
+
+  const Tax = () => (
+    <div className="space-y-6">
+      <Section title="Tax Configuration">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Switch 
+            label="Enable Tax" 
+            checked={settings.tax?.enabled ?? true} 
+            onChange={(v) => setSettings({ ...settings, tax: { ...settings.tax, enabled: v } })} 
+          />
+          <Input 
+            label="Tax Rate (%)" 
+            type="number" 
+            min="0" 
+            max="100" 
+            step="0.01"
+            value={settings.tax?.rate ?? 10} 
+            onChange={(e) => setSettings({ ...settings, tax: { ...settings.tax, rate: Number(e.target.value) } })} 
+            disabled={!settings.tax?.enabled}
+          />
+        </div>
+        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800">
+            <strong>Note:</strong> Tax will be calculated as {settings.tax?.rate ?? 10}% of the subtotal. 
+            {!settings.tax?.enabled && ' Tax is currently disabled and will not be applied to orders.'}
+          </p>
         </div>
       </Section>
     </div>
@@ -310,6 +503,7 @@ const Settings = () => {
             {active === 'general' && <General />}
             {active === 'payments' && <Payments />}
             {active === 'shipping' && <Shipping />}
+            {active === 'tax' && <Tax />}
             {active === 'appearance' && <Appearance />}
             {active === 'social' && <Social />}
             {active === 'notifications' && <Notifications />}

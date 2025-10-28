@@ -42,15 +42,79 @@ const Checkout = () => {
     phone: user?.phone || ''
   });
 
-  const [shippingMethod, setShippingMethod] = useState('standard');
   const [discount, setDiscount] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponCode, setCouponCode] = useState('');
   const [couponStatus, setCouponStatus] = useState('');
 
   const subtotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = shippingMethod === 'standard' ? (subtotal > 50 ? 0 : 10) : 20;
-  const tax = subtotal * 0.1;
+  
+  // Get delivery methods from admin settings
+  const deliveryMethods = useMemo(() => {
+    const settings = getPublicSettings();
+    const adminSettings = localStorage.getItem('admin_settings');
+    let methods = {};
+    
+    if (adminSettings) {
+      try {
+        const parsed = JSON.parse(adminSettings);
+        methods = parsed.shipping?.methods || {};
+      } catch (_) {}
+    }
+    
+    // If no methods found in admin settings, try public settings
+    if (Object.keys(methods).length === 0) {
+      methods = settings?.shipping?.methods || {};
+    }
+    
+    // If still no methods, use defaults
+    if (Object.keys(methods).length === 0) {
+      methods = {
+        standard: { enabled: true, name: 'Standard', price: 10, freeAbove: 50 },
+        express: { enabled: true, name: 'Express', price: 20, freeAbove: 0 }
+      };
+    }
+    
+    return methods;
+  }, []);
+  
+  // Get enabled delivery methods
+  const enabledDeliveryMethods = useMemo(() => {
+    const methods = [];
+    if (deliveryMethods.standard?.enabled !== false) {
+      methods.push({ id: 'standard', ...deliveryMethods.standard });
+    }
+    if (deliveryMethods.express?.enabled !== false) {
+      methods.push({ id: 'express', ...deliveryMethods.express });
+    }
+    return methods;
+  }, [deliveryMethods]);
+  
+  const [shippingMethod, setShippingMethod] = useState(() => enabledDeliveryMethods[0]?.id || 'standard');
+  
+  // Calculate shipping cost based on selected method
+  const shipping = useMemo(() => {
+    const method = deliveryMethods[shippingMethod];
+    if (!method) return 0;
+    const price = Number(method.price || 0);
+    const freeAbove = Number(method.freeAbove || 0);
+    return freeAbove > 0 && subtotal >= freeAbove ? 0 : price;
+  }, [shippingMethod, subtotal, deliveryMethods]);
+  
+  // Get tax settings from admin panel
+  const taxSettings = useMemo(() => {
+    const settings = getPublicSettings();
+    const adminSettings = localStorage.getItem('admin_settings');
+    if (adminSettings) {
+      try {
+        const parsed = JSON.parse(adminSettings);
+        return parsed.tax || { enabled: true, rate: 10 };
+      } catch (_) {}
+    }
+    return settings?.tax || { enabled: true, rate: 10 };
+  }, []);
+  
+  const tax = taxSettings.enabled ? subtotal * (taxSettings.rate / 100) : 0;
   const total = subtotal + shipping + tax - discount;
 
   const offerSavings = useMemo(() => {
@@ -124,7 +188,8 @@ const Checkout = () => {
         items: selectedItems.map(item => ({
           product: item.productId,
           quantity: item.quantity,
-          variant: item.variant
+          variant: item.variant,
+          image: item.image || undefined
         })),
         shippingAddress: formData,
         payment: {
@@ -163,27 +228,29 @@ const Checkout = () => {
       <h1 className="text-3xl font-bold mb-4 md:mb-8">Checkout</h1>
 
       
-      <div className="block lg:hidden mb-6">
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <h2 className="text-xl font-bold mb-3">Delivery Method</h2>
-          <div className="grid grid-cols-1 gap-3">
-            <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition ${shippingMethod === 'standard' ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}>
-              <div className="flex items-center space-x-2">
-                <input type="radio" name="shipping-mobile" value="standard" checked={shippingMethod === 'standard'} onChange={() => setShippingMethod('standard')} />
-                <span className="font-medium">Standard</span>
-              </div>
-              <span className="text-xs text-gray-500">{subtotal > 50 ? 'Free' : formatPrice(10, currency)}</span>
-            </label>
-            <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition ${shippingMethod === 'express' ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}>
-              <div className="flex items-center space-x-2">
-                <input type="radio" name="shipping-mobile" value="express" checked={shippingMethod === 'express'} onChange={() => setShippingMethod('express')} />
-                <span className="font-medium">Express</span>
-              </div>
-              <span className="text-xs text-gray-500">{formatPrice(20, currency)}</span>
-            </label>
+      {enabledDeliveryMethods.length > 0 && (
+        <div className="block lg:hidden mb-6">
+          <div className="bg-white rounded-lg shadow-md p-4">
+            <h2 className="text-xl font-bold mb-3">Delivery Method</h2>
+            <div className="grid grid-cols-1 gap-3">
+              {enabledDeliveryMethods.map((method) => {
+                const price = Number(method.price || 0);
+                const freeAbove = Number(method.freeAbove || 0);
+                const isFree = freeAbove > 0 && subtotal >= freeAbove;
+                return (
+                  <label key={method.id} className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition ${shippingMethod === method.id ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}>
+                    <div className="flex items-center space-x-2">
+                      <input type="radio" name="shipping-mobile" value={method.id} checked={shippingMethod === method.id} onChange={() => setShippingMethod(method.id)} />
+                      <span className="font-medium">{method.name}</span>
+                    </div>
+                    <span className="text-xs text-gray-500">{isFree ? 'Free' : formatPrice(price, currency)}</span>
+                  </label>
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
         <div className="order-1 lg:order-2 lg:col-span-1">
@@ -288,10 +355,12 @@ const Checkout = () => {
                 <span>Shipping</span>
                 <span>{shipping === 0 ? 'Free' : formatPrice(shipping, currency)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Tax</span>
-                <span>{formatPrice(tax, currency)}</span>
-              </div>
+              {taxSettings.enabled && (
+                <div className="flex justify-between">
+                  <span>Tax</span>
+                  <span>{formatPrice(tax, currency)}</span>
+                </div>
+              )}
               {discount > 0 ? (
                 <div className="flex justify-between text-green-600">
                   <span>Discount</span>
@@ -417,25 +486,27 @@ const Checkout = () => {
               />
             </div>
 
-            <div className="pt-2 hidden lg:block">
-              <h2 className="text-xl font-bold mb-3">Delivery Method</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition ${shippingMethod === 'standard' ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}>
-                  <div className="flex items-center space-x-2">
-                    <input type="radio" name="shipping" value="standard" checked={shippingMethod === 'standard'} onChange={() => setShippingMethod('standard')} />
-                    <span className="font-medium">Standard</span>
-                  </div>
-                  <span className="text-xs text-gray-500">{subtotal > 50 ? 'Free' : formatPrice(10, currency)}</span>
-                </label>
-                <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition ${shippingMethod === 'express' ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}>
-                  <div className="flex items-center space-x-2">
-                    <input type="radio" name="shipping" value="express" checked={shippingMethod === 'express'} onChange={() => setShippingMethod('express')} />
-                    <span className="font-medium">Express</span>
-                  </div>
-                  <span className="text-xs text-gray-500">{formatPrice(20, currency)}</span>
-                </label>
+            {enabledDeliveryMethods.length > 0 && (
+              <div className="pt-2 hidden lg:block">
+                <h2 className="text-xl font-bold mb-3">Delivery Method</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {enabledDeliveryMethods.map((method) => {
+                    const price = Number(method.price || 0);
+                    const freeAbove = Number(method.freeAbove || 0);
+                    const isFree = freeAbove > 0 && subtotal >= freeAbove;
+                    return (
+                      <label key={method.id} className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition ${shippingMethod === method.id ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}>
+                        <div className="flex items-center space-x-2">
+                          <input type="radio" name="shipping" value={method.id} checked={shippingMethod === method.id} onChange={() => setShippingMethod(method.id)} />
+                          <span className="font-medium">{method.name}</span>
+                        </div>
+                        <span className="text-xs text-gray-500">{isFree ? 'Free' : formatPrice(price, currency)}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="pt-2 hidden lg:block">
               <h2 className="text-xl font-bold mb-3">Payment Method</h2>

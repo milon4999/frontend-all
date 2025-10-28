@@ -15,7 +15,9 @@ import {
   Bell,
   Search,
   Image,
-  FolderTree
+  FolderTree,
+  Store,
+  ExternalLink
 } from 'lucide-react';
 import { logout } from '../../store/slices/authSlice';
 
@@ -158,6 +160,26 @@ const AdminLayout = ({ children }) => {
             </div>
 
             <div className="flex items-center space-x-4">
+              {/* Switch to Store Button */}
+              <Link
+                to="/"
+                className="hidden sm:inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all shadow-sm"
+                title="Switch to Store"
+              >
+                <Store className="h-4 w-4 mr-2" />
+                <span>View Store</span>
+                <ExternalLink className="h-3 w-3 ml-1" />
+              </Link>
+              
+              {/* Mobile Switch to Store Button */}
+              <Link
+                to="/"
+                className="sm:hidden p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-lg"
+                title="Switch to Store"
+              >
+                <Store className="h-6 w-6" />
+              </Link>
+
               {/* Notifications */}
               <button className="p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-lg relative">
                 <Bell className="h-6 w-6" />
