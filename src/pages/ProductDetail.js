@@ -520,7 +520,7 @@ const ProductDetail = () => {
             <div className="p-8">
               {activeTab === 'description' && (
                 <div className="prose max-w-none">
-                  <p className="text-gray-700 leading-relaxed text-lg">{product.description}</p>
+                  <p className="text-gray-700 leading-relaxed text-lg whitespace-pre-wrap">{product.description}</p>
                   {product.tags && product.tags.length > 0 && (
                     <div className="mt-6">
                       <h4 className="font-semibold text-gray-900 mb-3">Tags</h4>
@@ -607,7 +607,7 @@ const ProductDetail = () => {
             onToggle={() => setOpenSection(openSection === 'description' ? null : 'description')}
           >
             <div className="prose max-w-none">
-              <p className="text-gray-700 leading-relaxed">{product.description}</p>
+              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{product.description}</p>
               {product.tags && product.tags.length > 0 && (
                 <div className="mt-4">
                   <h4 className="font-semibold text-gray-900 mb-2">Tags</h4>

@@ -281,6 +281,18 @@ const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
     moveImage(index, index + 1);
   };
 
+  const handleFormKeyDown = (e) => {
+    // Prevent Enter key from submitting form when in textarea or input fields
+    if (e.key === 'Enter' && e.target.tagName !== 'BUTTON' && e.target.type !== 'submit') {
+      // Allow Enter in textarea
+      if (e.target.tagName === 'TEXTAREA') {
+        return;
+      }
+      // Prevent form submission for other inputs
+      e.preventDefault();
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -347,7 +359,7 @@ const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
         <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 bg-opacity-90 transition-opacity backdrop-blur-sm" onClick={onClose}></div>
 
         <div className="inline-block align-bottom bg-gradient-to-br from-white to-gray-50 rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full border border-gray-200">
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} onKeyDown={handleFormKeyDown}>
             <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-6 py-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
