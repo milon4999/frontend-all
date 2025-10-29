@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, ArrowUp, ArrowDown, Star, Award, Package, Tag, Image as ImageIcon, TrendingUp, Settings, Search } from 'lucide-react';
-import { productsAPI, categoriesAPI, uploadAPI } from '../../services/api';
+import { productsAPI, categoriesAPI } from '../../services/api';
 import { toast } from 'react-toastify';
 
 const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
   const [formData, setFormData] = useState({
     name: '',
+    slug: '',
     description: '',
     price: '',
     comparePrice: '',
@@ -45,15 +46,17 @@ const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
   const [newKeyword, setNewKeyword] = useState('');
   const [newVariantName, setNewVariantName] = useState('');
   const [variantOptionInputs, setVariantOptionInputs] = useState({});
-  const [imageColorInputs, setImageColorInputs] = useState({});
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       fetchCategories();
+      setSlugManuallyEdited(false); // Reset flag when modal opens
       if (product) {
         // Edit mode - populate form with existing product data
         setFormData({
           name: product.name || '',
+          slug: product.slug || '',
           description: product.description || '',
           price: product.price || '',
           comparePrice: product.comparePrice || '',
@@ -103,9 +106,39 @@ const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
     }
   };
 
+  // Generate slug from text
+  const generateSlug = (text) => {
+    return String(text || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  };
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     const val = type === 'checkbox' ? checked : value;
+    
+    // Track if slug is manually edited
+    if (name === 'slug') {
+      setSlugManuallyEdited(true);
+      setFormData(prev => ({ ...prev, [name]: val }));
+      return;
+    }
+    
+    // Auto-generate slug when name changes (only for NEW products, unless admin manually edited the slug)
+    if (name === 'name') {
+      if (!product && !slugManuallyEdited) {
+        // NEW product: Auto-generate slug from name
+        const slug = generateSlug(value);
+        setFormData(prev => ({ ...prev, name: val, slug }));
+        return;
+      } else {
+        // EXISTING product OR admin manually edited slug: just update name without touching slug
+        setFormData(prev => ({ ...prev, name: val }));
+        return;
+      }
+    }
+    
     if (!name.includes('.')) {
       setFormData(prev => ({ ...prev, [name]: val }));
       return;
@@ -209,36 +242,6 @@ const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
       next.variants = variants;
       return next;
     });
-  };
-
-  // Create a new color option from the images section and assign it to this image
-  const addColorForImage = (index) => {
-    const val = String(imageColorInputs[index] || '').trim();
-    if (!val) return;
-    ensureColorVariant(val);
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.map((img, i) => (i === index ? { ...img, color: val } : img))
-    }));
-    setImageColorInputs(prev => ({ ...prev, [index]: '' }));
-    toast.success('Color added');
-  };
-
-  const handleImageFile = async (index, file) => {
-    if (!file) return;
-    try {
-      const fd = new FormData();
-      fd.append('image', file);
-      const res = await uploadAPI.uploadImage(fd);
-      const url = res.data.url;
-      setFormData(prev => ({
-        ...prev,
-        images: prev.images.map((img, i) => (i === index ? { ...img, url } : img))
-      }));
-      toast.success('Image uploaded');
-    } catch (error) {
-      toast.error('Failed to upload image');
-    }
   };
 
   const addImage = () => {
@@ -348,7 +351,15 @@ const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
 
       if (product) {
         // Edit existing product
-        await productsAPI.update(product._id, cleanData);
+        const updateData = { ...cleanData };
+        
+        // Only send slug if it was manually edited AND actually changed
+        // Otherwise, exclude it to avoid duplicate slug error
+        if (!slugManuallyEdited || updateData.slug === product.slug) {
+          delete updateData.slug;
+        }
+        
+        await productsAPI.update(product._id, updateData);
         toast.success('Product updated successfully!');
       } else {
         // Create new product
@@ -420,6 +431,41 @@ const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
                       placeholder="Enter product name"
                       className="mt-1 block w-full rounded-lg border-2 border-gray-200 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 px-4 py-2.5 transition-all"
                     />
+                  </div>
+
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border-2 border-blue-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-semibold text-blue-900">
+                        Product Slug (URL) 
+                        <span className="text-xs font-normal text-blue-600 ml-1">(Optional)</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, slug: generateSlug(prev.name) }));
+                          setSlugManuallyEdited(true);
+                        }}
+                        className="text-xs bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg transition-all font-semibold flex items-center gap-1"
+                      >
+                        <Settings className="h-3 w-3" />
+                        Generate
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      name="slug"
+                      value={formData.slug}
+                      onChange={handleInputChange}
+                      placeholder="auto-generated-from-name"
+                      className="block w-full rounded-lg border-2 border-blue-200 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 px-4 py-2.5 text-sm transition-all font-mono"
+                    />
+                    <p className="text-xs text-blue-600 mt-1.5">
+                      {formData.slug ? (
+                        <>✓ URL Preview: <span className="font-semibold">/products/{formData.slug}</span></>
+                      ) : (
+                        '💡 Leave empty to auto-generate from product name'
+                      )}
+                    </p>
                   </div>
 
                   <div>
