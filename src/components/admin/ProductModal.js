@@ -663,20 +663,20 @@ const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
                   </div>
                   
                   {/* Images */}
-                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-5 rounded-xl border-2 border-blue-200 shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                      <label className="text-sm font-bold text-blue-900 flex items-center space-x-2">
-                        <ImageIcon className="h-5 w-5 text-blue-600" />
+                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-3 sm:p-5 rounded-xl border-2 border-blue-200 shadow-sm">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                      <label className="text-xs sm:text-sm font-bold text-blue-900 flex items-center space-x-1 sm:space-x-2">
+                        <ImageIcon className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                         <span>Product Images</span>
                       </label>
-                      <span className="text-xs text-blue-600 font-semibold bg-blue-100 px-2 py-1 rounded-full">
+                      <span className="text-[10px] sm:text-xs text-blue-600 font-semibold bg-blue-100 px-2 py-1 rounded-full">
                         {formData.images.length} {formData.images.length === 1 ? 'Image' : 'Images'}
                       </span>
                     </div>
                     
-                    <div className="space-y-3">
+                    <div className="space-y-2 sm:space-y-3">
                       {formData.images.map((image, index) => (
-                        <div key={index} className="bg-white rounded-lg border-2 border-blue-100 p-3 shadow-sm hover:shadow-md transition-all">
+                        <div key={index} className="bg-white rounded-lg border-2 border-blue-100 p-2 sm:p-3 shadow-sm hover:shadow-md transition-all">
                           <div className="flex gap-3">
                             {/* Preview Section */}
                             <div className="relative flex-shrink-0">
@@ -824,12 +824,12 @@ const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
                   </div>
 
                   {/* Inventory */}
-                  <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-xl border-2 border-indigo-200">
-                    <div className="flex items-center space-x-2 mb-3">
+                  <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-3 sm:p-4 rounded-xl border-2 border-indigo-200">
+                    <div className="flex items-center space-x-2 mb-2 sm:mb-3">
                       <Package className="h-4 w-4 text-indigo-600" />
-                      <span className="text-sm font-semibold text-indigo-800">Inventory Management</span>
+                      <span className="text-xs sm:text-sm font-semibold text-indigo-800">Inventory Management</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-2 sm:mb-3">
                       <div>
                         <label className="block text-xs font-semibold text-gray-700 mb-1">Stock *</label>
                         <input
@@ -870,12 +870,12 @@ const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
                   </div>
 
                   {/* Shipping */}
-                  <div className="bg-gradient-to-br from-teal-50 to-emerald-50 p-4 rounded-xl border-2 border-teal-200">
-                    <div className="flex items-center space-x-2 mb-3">
+                  <div className="bg-gradient-to-br from-teal-50 to-emerald-50 p-3 sm:p-4 rounded-xl border-2 border-teal-200">
+                    <div className="flex items-center space-x-2 mb-2 sm:mb-3">
                       <Package className="h-4 w-4 text-teal-600" />
-                      <span className="text-sm font-semibold text-teal-800">Shipping Details</span>
+                      <span className="text-xs sm:text-sm font-semibold text-teal-800">Shipping Details</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
                       <div>
                         <label className="block text-xs font-semibold text-gray-700 mb-1">Weight (kg)</label>
                         <input
