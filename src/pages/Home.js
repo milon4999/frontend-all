@@ -71,9 +71,10 @@ const Home = () => {
         console.log('Products data:', productsRes.data);
         const featured = productsRes.data.products;
 
-        const saleProductsRes = await productsAPI.getAll({ sort: '-createdAt', limit: 10 });
+        // Fetch products sorted by sales count for Top Sale section
+        const saleProductsRes = await productsAPI.getAll({ sort: '-sales', limit: 50 });
         const saleFiltered = saleProductsRes.data.products.filter(
-          (product) => product.comparePrice && product.comparePrice > product.price
+          (product) => product.comparePrice && Number(product.comparePrice) > Number(product.price)
         );
         const topSale = saleFiltered.slice(0, 10);
 
