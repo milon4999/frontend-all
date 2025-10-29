@@ -23,7 +23,12 @@ const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
     shipping: {
       weight: '',
       dimensions: { length: '', width: '', height: '' },
-      freeShipping: false
+      freeShipping: false,
+      freeShippingThreshold: 50,
+      standardDelivery: '3-5 business days',
+      expressDelivery: '1-2 business days (additional charges apply)',
+      internationalShipping: true,
+      shippingNotes: ''
     },
     seo: {
       metaTitle: '',
@@ -77,7 +82,12 @@ const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
               width: product.shipping?.dimensions?.width || '',
               height: product.shipping?.dimensions?.height || ''
             },
-            freeShipping: product.shipping?.freeShipping || false
+            freeShipping: product.shipping?.freeShipping || false,
+            freeShippingThreshold: product.shipping?.freeShippingThreshold || 50,
+            standardDelivery: product.shipping?.standardDelivery || '3-5 business days',
+            expressDelivery: product.shipping?.expressDelivery || '1-2 business days (additional charges apply)',
+            internationalShipping: product.shipping?.internationalShipping !== false,
+            shippingNotes: product.shipping?.shippingNotes || ''
           }
         });
       }
@@ -316,6 +326,11 @@ const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
             height: formData.shipping?.dimensions?.height !== '' ? parseFloat(formData.shipping.dimensions.height) : undefined,
           },
           freeShipping: !!formData.shipping?.freeShipping,
+          freeShippingThreshold: formData.shipping?.freeShippingThreshold ? parseFloat(formData.shipping.freeShippingThreshold) : 50,
+          standardDelivery: formData.shipping?.standardDelivery || '3-5 business days',
+          expressDelivery: formData.shipping?.expressDelivery || '1-2 business days (additional charges apply)',
+          internationalShipping: !!formData.shipping?.internationalShipping,
+          shippingNotes: formData.shipping?.shippingNotes || undefined
         },
         variants: (formData.variants || [])
           .filter(v => v && v.name && v.name.trim())
@@ -867,6 +882,66 @@ const ProductModal = ({ isOpen, onClose, product = null, onSuccess }) => {
                           className="block w-full rounded-lg border-2 border-teal-200 shadow-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 px-3 py-2 text-sm transition-all"
                         />
                       </div>
+                    </div>
+                    
+                    {/* Shipping Information */}
+                    <div className="mt-3 space-y-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Free Shipping Threshold ($)</label>
+                        <input
+                          type="number"
+                          name="shipping.freeShippingThreshold"
+                          value={formData.shipping.freeShippingThreshold}
+                          onChange={handleInputChange}
+                          min="0"
+                          step="1"
+                          placeholder="50"
+                          className="block w-full rounded-lg border-2 border-teal-200 shadow-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 px-3 py-2 text-sm transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Standard Delivery</label>
+                        <input
+                          type="text"
+                          name="shipping.standardDelivery"
+                          value={formData.shipping.standardDelivery}
+                          onChange={handleInputChange}
+                          placeholder="3-5 business days"
+                          className="block w-full rounded-lg border-2 border-teal-200 shadow-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 px-3 py-2 text-sm transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Express Delivery</label>
+                        <input
+                          type="text"
+                          name="shipping.expressDelivery"
+                          value={formData.shipping.expressDelivery}
+                          onChange={handleInputChange}
+                          placeholder="1-2 business days (additional charges apply)"
+                          className="block w-full rounded-lg border-2 border-teal-200 shadow-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 px-3 py-2 text-sm transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Shipping Notes (optional)</label>
+                        <textarea
+                          name="shipping.shippingNotes"
+                          value={formData.shipping.shippingNotes}
+                          onChange={handleInputChange}
+                          rows={2}
+                          placeholder="Additional shipping information..."
+                          className="block w-full rounded-lg border-2 border-teal-200 shadow-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 px-3 py-2 text-sm transition-all"
+                        />
+                      </div>
+                      <label className="flex items-center p-2 rounded-lg hover:bg-teal-100/50 transition-all cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="shipping.internationalShipping"
+                          checked={formData.shipping.internationalShipping}
+                          onChange={handleInputChange}
+                          className="rounded border-2 border-teal-300 text-teal-600 shadow-sm focus:border-teal-400 focus:ring focus:ring-teal-200 focus:ring-opacity-50 w-5 h-5"
+                        />
+                        <span className="ml-3 text-sm font-semibold text-gray-700">International Shipping Available</span>
+                      </label>
                     </div>
                   </div>
 

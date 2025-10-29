@@ -468,7 +468,7 @@ const ProductDetail = () => {
                 <Truck className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
                 <div>
                   <div className="font-semibold text-xs md:text-sm">Free Shipping</div>
-                  <div className="text-[10px] md:text-xs text-gray-500">On orders over {formatPrice(50, product.currency || 'USD')}</div>
+                  <div className="text-[10px] md:text-xs text-gray-500">On orders over {formatPrice(product.shipping?.freeShippingThreshold || 50, product.currency || 'USD')}</div>
                 </div>
               </div>
               <div className="flex items-center space-x-2 md:space-x-3 p-2 md:p-4 bg-white rounded-lg shadow-sm border">
@@ -586,12 +586,32 @@ const ProductDetail = () => {
                 <div className="space-y-6">
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-4">Shipping Information</h4>
-                    <div className="space-y-3 text-gray-700">
-                      <p>• Free shipping on orders over {formatPrice(50, product.currency || 'USD')}</p>
-                      <p>• Standard delivery: 3-5 business days</p>
-                      <p>• Express delivery: 1-2 business days (additional charges apply)</p>
-                      <p>• International shipping available</p>
-                    </div>
+                    <ul className="space-y-3 text-gray-700 list-none">
+                      <li className="flex items-start">
+                        <span className="mr-2">•</span>
+                        <span>Free shipping on orders over {formatPrice(product.shipping?.freeShippingThreshold || 50, product.currency || 'USD')}</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="mr-2">•</span>
+                        <span>Standard delivery: {product.shipping?.standardDelivery || '3-5 business days'}</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="mr-2">•</span>
+                        <span>Express delivery: {product.shipping?.expressDelivery || '1-2 business days (additional charges apply)'}</span>
+                      </li>
+                      {product.shipping?.internationalShipping !== false && (
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>International shipping available</span>
+                        </li>
+                      )}
+                      {product.shipping?.shippingNotes && (
+                        <li className="flex items-start mt-4 pt-4 border-t border-gray-200">
+                          <span className="mr-2">ℹ️</span>
+                          <span className="whitespace-pre-wrap">{product.shipping.shippingNotes}</span>
+                        </li>
+                      )}
+                    </ul>
                   </div>
                 </div>
               )}
@@ -658,11 +678,32 @@ const ProductDetail = () => {
             isOpen={openSection === 'shipping'}
             onToggle={() => setOpenSection(openSection === 'shipping' ? null : 'shipping')}
           >
-            <div className="space-y-2 text-sm text-gray-700">
-              <p>• Free shipping over {formatPrice(50, product.currency || 'USD')}</p>
-              <p>• Standard: 3-5 business days</p>
-              <p>• Express: 1-2 business days</p>
-            </div>
+            <ul className="space-y-2 text-sm text-gray-700 list-none">
+              <li className="flex items-start">
+                <span className="mr-2">•</span>
+                <span>Free shipping over {formatPrice(product.shipping?.freeShippingThreshold || 50, product.currency || 'USD')}</span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-2">•</span>
+                <span>Standard: {product.shipping?.standardDelivery || '3-5 business days'}</span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-2">•</span>
+                <span>Express: {product.shipping?.expressDelivery || '1-2 business days'}</span>
+              </li>
+              {product.shipping?.internationalShipping !== false && (
+                <li className="flex items-start">
+                  <span className="mr-2">•</span>
+                  <span>International shipping available</span>
+                </li>
+              )}
+              {product.shipping?.shippingNotes && (
+                <li className="flex items-start mt-3 pt-3 border-t border-gray-200">
+                  <span className="mr-2">ℹ️</span>
+                  <span className="whitespace-pre-wrap text-xs">{product.shipping.shippingNotes}</span>
+                </li>
+              )}
+            </ul>
           </CollapsibleSection>
         </div>
       </div>
