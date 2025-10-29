@@ -27,6 +27,9 @@ const ProductDetail = () => {
   const [recommendedProducts, setRecommendedProducts] = useState([]);
   const [recommendedLoading, setRecommendedLoading] = useState(true);
   const [openSection, setOpenSection] = useState('description');
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  
+  const DESCRIPTION_CHAR_LIMIT = 300;
 
   const { 
     currentIndex: currentImageIndex, 
@@ -520,7 +523,29 @@ const ProductDetail = () => {
             <div className="p-8">
               {activeTab === 'description' && (
                 <div className="prose max-w-none">
-                  <p className="text-gray-700 leading-relaxed text-lg whitespace-pre-wrap">{product.description}</p>
+                  <p className="text-gray-700 leading-relaxed text-lg whitespace-pre-wrap">
+                    {product.description && product.description.length > DESCRIPTION_CHAR_LIMIT && !isDescriptionExpanded
+                      ? `${product.description.substring(0, DESCRIPTION_CHAR_LIMIT)}...`
+                      : product.description}
+                  </p>
+                  {product.description && product.description.length > DESCRIPTION_CHAR_LIMIT && (
+                    <button
+                      onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                      className="mt-4 text-blue-600 hover:text-blue-700 font-semibold flex items-center transition-colors"
+                    >
+                      {isDescriptionExpanded ? (
+                        <>
+                          <span>See Less</span>
+                          <ChevronRight className="h-4 w-4 ml-1 rotate-90" />
+                        </>
+                      ) : (
+                        <>
+                          <span>See More</span>
+                          <ChevronRight className="h-4 w-4 ml-1 -rotate-90" />
+                        </>
+                      )}
+                    </button>
+                  )}
                   {product.tags && product.tags.length > 0 && (
                     <div className="mt-6">
                       <h4 className="font-semibold text-gray-900 mb-3">Tags</h4>
@@ -627,7 +652,29 @@ const ProductDetail = () => {
             onToggle={() => setOpenSection(openSection === 'description' ? null : 'description')}
           >
             <div className="prose max-w-none">
-              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{product.description}</p>
+              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                {product.description && product.description.length > DESCRIPTION_CHAR_LIMIT && !isDescriptionExpanded
+                  ? `${product.description.substring(0, DESCRIPTION_CHAR_LIMIT)}...`
+                  : product.description}
+              </p>
+              {product.description && product.description.length > DESCRIPTION_CHAR_LIMIT && (
+                <button
+                  onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                  className="mt-3 text-blue-600 hover:text-blue-700 font-semibold flex items-center transition-colors text-sm"
+                >
+                  {isDescriptionExpanded ? (
+                    <>
+                      <span>See Less</span>
+                      <ChevronRight className="h-4 w-4 ml-1 rotate-90" />
+                    </>
+                  ) : (
+                    <>
+                      <span>See More</span>
+                      <ChevronRight className="h-4 w-4 ml-1 -rotate-90" />
+                    </>
+                  )}
+                </button>
+              )}
               {product.tags && product.tags.length > 0 && (
                 <div className="mt-4">
                   <h4 className="font-semibold text-gray-900 mb-2">Tags</h4>
