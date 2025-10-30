@@ -111,36 +111,39 @@ const Products = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Products</h1>
+    <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-6 py-6 lg:py-10">
+      <div className="flex justify-between items-center mb-6 lg:mb-8">
+        <div>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 mb-1">Products</h1>
+          <p className="text-sm sm:text-base text-gray-600">Discover our latest collection</p>
+        </div>
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className="md:hidden flex items-center space-x-2 px-4 py-2 border rounded-lg"
+          className="md:hidden flex items-center space-x-2 px-4 py-2.5 bg-pink-600 text-white rounded-xl hover:bg-pink-700 transition-colors shadow-md"
         >
           <Filter className="h-5 w-5" />
-          <span>Filters</span>
+          <span className="font-medium">Filters</span>
         </button>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-8">
+      <div className="flex flex-col md:flex-row gap-4 lg:gap-6">
         {/* Filters Sidebar */}
-        <div className={`${showFilters ? 'block' : 'hidden'} md:block w-full md:w-64 space-y-6`}>
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Filters</h2>
-              <button onClick={clearFilters} className="text-sm text-primary-600 hover:text-primary-700">
+        <div className={`${showFilters ? 'block' : 'hidden'} md:block w-full md:w-64 lg:w-72 space-y-6`}>
+          <div className="bg-white p-5 lg:p-6 rounded-2xl shadow-lg border border-gray-100">
+            <div className="flex justify-between items-center mb-5 pb-4 border-b border-gray-100">
+              <h2 className="text-lg lg:text-xl font-bold text-gray-900">Filters</h2>
+              <button onClick={clearFilters} className="text-sm font-semibold text-pink-600 hover:text-pink-700 transition-colors">
                 Clear All
               </button>
             </div>
 
             {/* Category Filter */}
             <div className="mb-6">
-              <h3 className="font-semibold mb-3">Category</h3>
+              <h3 className="font-bold text-gray-900 mb-3 text-sm lg:text-base">Category</h3>
               <select
                 value={filters.category}
                 onChange={(e) => handleFilterChange('category', e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all bg-gray-50 hover:bg-white font-medium text-sm"
               >
                 <option value="">All Categories</option>
                 {categories.map((cat) => (
@@ -153,34 +156,34 @@ const Products = () => {
 
             {/* Price Filter */}
             <div className="mb-6">
-              <h3 className="font-semibold mb-3">Price Range</h3>
-              <div className="space-y-2">
+              <h3 className="font-bold text-gray-900 mb-3 text-sm lg:text-base">Price Range</h3>
+              <div className="space-y-3">
                 <input
                   type="number"
-                  placeholder="Min"
+                  placeholder="Min Price"
                   value={filters.minPrice}
                   onChange={(e) => handleFilterChange('minPrice', e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all bg-gray-50 hover:bg-white font-medium text-sm"
                 />
                 <input
                   type="number"
-                  placeholder="Max"
+                  placeholder="Max Price"
                   value={filters.maxPrice}
                   onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all bg-gray-50 hover:bg-white font-medium text-sm"
                 />
               </div>
             </div>
 
             {/* Sort */}
             <div>
-              <h3 className="font-semibold mb-3">Sort By</h3>
+              <h3 className="font-bold text-gray-900 mb-3 text-sm lg:text-base">Sort By</h3>
               <select
                 value={filters.sort}
                 onChange={(e) => handleFilterChange('sort', e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all bg-gray-50 hover:bg-white font-medium text-sm"
               >
-                <option value="-createdAt">Newest</option>
+                <option value="-createdAt">Newest First</option>
                 <option value="price">Price: Low to High</option>
                 <option value="-price">Price: High to Low</option>
                 <option value="-ratings.average">Top Rated</option>
@@ -192,9 +195,9 @@ const Products = () => {
         {/* Products Grid */}
         <div className="flex-1">
           {loading && currentPage === 1 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-              {[...Array(9)].map((_, i) => (
-                <div key={i} className="bg-gray-200 rounded-lg h-96 animate-pulse"></div>
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-3 lg:gap-3">
+              {[...Array(12)].map((_, i) => (
+                <div key={i} className="bg-gray-200 rounded-xl h-80 sm:h-96 animate-pulse"></div>
               ))}
             </div>
           ) : products.length === 0 ? (
@@ -203,44 +206,50 @@ const Products = () => {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-3 lg:gap-3">
                 {products.map((product) => (
                   <Link
                     key={product._id}
                     to={`/products/${product._id}`}
-                    className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition group"
+                    className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:border-pink-200 hover:-translate-y-1 transition-all duration-300 group flex flex-col"
                   >
-                    <div className="relative h-48 sm:h-64 overflow-hidden">
+                    <div className="relative h-48 sm:h-56 lg:h-72 xl:h-80 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
                       <img
                         src={product.images[0]?.url || 'https://via.placeholder.com/300'}
                         alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition duration-300"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                       />
                       {product.comparePrice && (
-                        <span className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-sm font-semibold">
-                          Sale
-                        </span>
+                        <div className="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1.5 rounded-full text-sm sm:text-base font-extrabold shadow-xl">
+                          {Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)}% OFF
+                        </div>
                       )}
                       {product.inventory.stock === 0 && (
-                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                          <span className="text-white font-bold text-lg">Out of Stock</span>
+                        <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center backdrop-blur-sm">
+                          <span className="text-white font-bold text-base sm:text-lg bg-red-600 px-5 py-2.5 rounded-xl shadow-lg">Out of Stock</span>
                         </div>
                       )}
                     </div>
-                    <div className="p-2 sm:p-4">
-                      <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-1 sm:mb-2 truncate">{product.name}</h3>
-                      <p className="hidden sm:block text-sm text-gray-600 mb-2 line-clamp-2">{product.description}</p>
-                      <div className="flex items-center mb-1 sm:mb-2">
-                        <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400 fill-current" />
-                        <span className="ml-1 text-xs sm:text-sm text-gray-600">
-                          {product.ratings.average.toFixed(1)} ({product.ratings.count})
+                    <div className="p-3 sm:p-4 lg:p-5 flex flex-col flex-grow bg-white">
+                      <h3 className="font-bold text-sm sm:text-base lg:text-lg text-gray-900 mb-3 line-clamp-2 min-h-[2.5rem] sm:min-h-[3rem] leading-snug">{product.name}</h3>
+                      
+                      <div className="flex items-center mb-3 sm:mb-4">
+                        <div className="flex items-center bg-yellow-50 border border-yellow-100 px-2.5 py-1 rounded-lg">
+                          <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-500 fill-yellow-500" />
+                          <span className="ml-1.5 text-xs sm:text-sm font-bold text-gray-800">
+                            {product.ratings.average.toFixed(1)}
+                          </span>
+                        </div>
+                        <span className="ml-2 text-xs sm:text-sm text-gray-500 font-medium">
+                          ({product.ratings.count})
                         </span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="text-base sm:text-xl font-bold text-pink-600">{formatPrice(product.price, product.currency)}</span>
+                      
+                      <div className="mt-auto pt-2 border-t border-gray-100">
+                        <div className="flex items-baseline gap-2 flex-wrap">
+                          <span className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-pink-600">{formatPrice(product.price, product.currency)}</span>
                           {product.comparePrice && (
-                            <span className="ml-1 sm:ml-2 text-xs sm:text-sm text-gray-500 line-through">
+                            <span className="text-xs sm:text-sm text-gray-400 line-through font-medium">
                               {formatPrice(product.comparePrice, product.currency)}
                             </span>
                           )}
@@ -253,9 +262,9 @@ const Products = () => {
 
               {/* Loading More Indicator */}
               {loadingMore && (
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 mt-3 sm:mt-6">
-                  {[...Array(6)].map((_, i) => (
-                    <div key={i} className="bg-gray-200 rounded-lg h-96 animate-pulse"></div>
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-3 lg:gap-3 mt-3 sm:mt-6">
+                  {[...Array(8)].map((_, i) => (
+                    <div key={i} className="bg-gray-200 rounded-xl h-80 sm:h-96 animate-pulse"></div>
                   ))}
                 </div>
               )}

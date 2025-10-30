@@ -6,6 +6,8 @@ const BannerSlider = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [banners, setBanners] = useState([]);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
   // Fetch banners from API
   useEffect(() => {
@@ -86,8 +88,48 @@ const BannerSlider = () => {
     setTimeout(() => setIsAutoPlaying(true), 10000); // Resume auto-play after 10s
   };
 
+  // Touch handlers for swipe
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      // Swipe left - go to next slide
+      setCurrentSlide((prev) => (prev + 1) % banners.length);
+      setIsAutoPlaying(false);
+      setTimeout(() => setIsAutoPlaying(true), 10000);
+    }
+
+    if (isRightSwipe) {
+      // Swipe right - go to previous slide
+      setCurrentSlide((prev) => (prev - 1 + banners.length) % banners.length);
+      setIsAutoPlaying(false);
+      setTimeout(() => setIsAutoPlaying(true), 10000);
+    }
+
+    // Reset touch states
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
+
   return (
-    <div className="relative w-full h-[160px] sm:h-[300px] md:h-[400px] lg:h-[500px] overflow-hidden">
+    <div 
+      className="relative w-full h-[160px] sm:h-[300px] md:h-[350px] lg:h-[380px] overflow-hidden rounded-2xl"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Slides */}
       {banners.map((banner, index) => (
         <div

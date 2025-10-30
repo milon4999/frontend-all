@@ -870,19 +870,53 @@ const ProductDetail = () => {
 
       {/* Image Modal */}
       {showImageModal && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4">
-          <div className="relative max-w-4xl max-h-full">
+        <div 
+          className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4"
+          onClick={() => setShowImageModal(false)}
+        >
+          <div className="relative w-full max-w-6xl max-h-[90vh] flex items-center justify-center">
             <button
               onClick={() => setShowImageModal(false)}
-              className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-75"
+              className="absolute -top-12 right-0 md:top-4 md:right-4 text-white bg-gray-800 hover:bg-gray-700 rounded-full p-3 transition-colors shadow-lg z-10"
             >
               <X className="h-6 w-6" />
             </button>
+            
+            {/* Navigation Arrows */}
+            {product.images.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedImageIndex((selectedImage - 1 + product.images.length) % product.images.length);
+                  }}
+                  className="absolute left-2 md:left-4 text-white bg-gray-800 hover:bg-gray-700 rounded-full p-3 transition-colors shadow-lg z-10"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedImageIndex((selectedImage + 1) % product.images.length);
+                  }}
+                  className="absolute right-2 md:right-4 text-white bg-gray-800 hover:bg-gray-700 rounded-full p-3 transition-colors shadow-lg z-10"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              </>
+            )}
+            
             <img
-              src={product.images[selectedImage]?.url}
-              alt={product.name}
-              className="max-w-full max-h-full object-contain"
+              src={product.images[selectedImage]?.url || 'https://via.placeholder.com/800'}
+              alt={`${product.name} - View ${selectedImage + 1}`}
+              className="max-w-full max-h-[90vh] object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
             />
+            
+            {/* Image Counter */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-full text-sm font-medium">
+              {selectedImage + 1} / {product.images.length}
+            </div>
           </div>
         </div>
       )}

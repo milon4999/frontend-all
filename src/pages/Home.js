@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, TrendingUp, Shield, Truck, ChevronLeft, ChevronRight, Flame, Sparkles } from 'lucide-react';
-import { productsAPI } from '../services/api';
+import { Star, TrendingUp, Shield, Truck, ChevronLeft, ChevronRight, Flame, Sparkles, Grid, Tag } from 'lucide-react';
+import { productsAPI, categoriesAPI } from '../services/api';
 import BannerSlider from '../components/BannerSlider';
 import CategorySlider from '../components/CategorySlider';
 import { formatPrice } from '../utils/currency';
@@ -42,6 +42,7 @@ const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState(cachedHome?.featuredProducts || []);
   const [topSaleProducts, setTopSaleProducts] = useState(cachedHome?.topSaleProducts || []);
   const [latestProducts, setLatestProducts] = useState(cachedHome?.latestProducts || []);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(!cachedHome);
   const [saleLoading, setSaleLoading] = useState(!cachedHome);
   const [latestLoading, setLatestLoading] = useState(!cachedHome);
@@ -65,6 +66,10 @@ const Home = () => {
 
       try {
         console.log('Fetching products from:', process.env.REACT_APP_API_URL);
+
+        // Fetch categories
+        const categoriesRes = await categoriesAPI.getAll();
+        if (active) setCategories(categoriesRes.data.categories);
 
         const productsRes = await productsAPI.getAll({ featured: true, limit: 8 });
         console.log('API Response:', productsRes);
@@ -205,11 +210,76 @@ const Home = () => {
 
   return (
     <div>
-      {/* Hero Banner Slider */}
-      <BannerSlider />
+      {/* Desktop Layout: Sidebar + Banner */}
+      <div className="hidden lg:block bg-white">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-6 py-4">
+          <div className="flex gap-4">
+            {/* Left Sidebar - Categories */}
+            <div className="w-80 flex-shrink-0">
+              <div className="bg-gradient-to-br from-pink-600 to-pink-500 rounded-t-2xl p-4 shadow-lg">
+                <div className="flex items-center text-white">
+                  <Grid className="h-6 w-6 mr-2" />
+                  <h2 className="text-lg font-bold">All Categories</h2>
+                </div>
+              </div>
+              <div className="bg-white border-2 border-gray-100 rounded-b-2xl shadow-lg overflow-hidden">
+                {categories.length > 0 ? (
+                  <div className="max-h-[320px] overflow-y-auto scrollbar-thin scrollbar-thumb-pink-300 scrollbar-track-gray-100 hover:scrollbar-thumb-pink-400">
+                    <div className="divide-y divide-gray-100">
+                      {categories.map((category) => (
+                        <Link
+                          key={category._id}
+                          to={`/products?category=${category._id}`}
+                          className="flex items-center justify-between px-4 py-3 hover:bg-pink-50 transition-colors group"
+                        >
+                          <div className="flex items-center space-x-3">
+                            {(category.image?.url || category.image) ? (
+                              <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-br from-pink-50 to-orange-50 border-2 border-pink-100">
+                                <img
+                                  src={category.image?.url || category.image}
+                                  alt={category.name}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.parentElement.innerHTML = '<div class="w-full h-full bg-gradient-to-br from-pink-100 to-pink-200 flex items-center justify-center"><svg class="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg></div>';
+                                  }}
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-12 h-12 bg-gradient-to-br from-pink-100 to-pink-200 rounded-full flex items-center justify-center flex-shrink-0 border-2 border-pink-100">
+                                <Tag className="h-6 w-6 text-pink-600" />
+                              </div>
+                            )}
+                            <span className="text-sm font-medium text-gray-700 group-hover:text-pink-600 transition-colors">
+                              {category.name}
+                            </span>
+                          </div>
+                          <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-pink-600 transition-colors" />
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 text-center text-gray-500 text-sm">
+                    Loading categories...
+                  </div>
+                )}
+              </div>
+            </div>
 
-      {/* Category Slider - Below Banner */}
-      <CategorySlider />
+            {/* Right Side - Banner Slider */}
+            <div className="flex-1">
+              <BannerSlider />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Layout: Banner + Category Slider */}
+      <div className="lg:hidden">
+        <BannerSlider />
+        <CategorySlider />
+      </div>
 
       {/* Top Sale Products Section */}
       <section className="py-4 md:py-12 bg-gradient-to-r from-red-50 to-orange-50">
