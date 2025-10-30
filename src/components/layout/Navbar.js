@@ -48,7 +48,7 @@ const Navbar = () => {
     <>
     <nav className="bg-gradient-to-r from-pink-600 to-pink-500 text-white shadow-lg fixed inset-x-0 top-0 z-50 md:sticky md:top-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-4 lg:gap-6 h-14 sm:h-16 lg:h-20">
+        <div className="flex items-center justify-between gap-4 lg:gap-6 h-16 sm:h-18 lg:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 flex-shrink-0 hover:opacity-90 transition-opacity">
             <ShoppingCart className="h-6 w-6 sm:h-7 sm:w-7 lg:h-9 lg:w-9 text-white drop-shadow-md" />
@@ -174,7 +174,7 @@ const Navbar = () => {
       </div>
     </nav>
     {/* Mobile spacer to offset fixed navbar height */}
-    <div className="h-14 sm:h-16 lg:h-20 md:hidden" aria-hidden="true" />
+    <div className="h-16 sm:h-18 lg:h-20 md:hidden" aria-hidden="true" />
     </>
   );
 };
