@@ -125,7 +125,7 @@ const BannerSlider = () => {
 
   return (
     <div 
-      className="relative w-full h-[160px] sm:h-[300px] md:h-[350px] lg:h-[380px] overflow-hidden rounded-2xl"
+      className="relative w-full h-[160px] sm:h-[300px] md:h-[350px] lg:h-[380px] overflow-hidden lg:rounded-2xl"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
