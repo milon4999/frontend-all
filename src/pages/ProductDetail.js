@@ -64,7 +64,15 @@ const ProductDetail = () => {
           sort: '-ratings.average',
           limit: 10 
         });
-        setRecommendedProducts(response.data.products);
+        const uniqueProducts = [];
+        const seenIds = new Set();
+        (response.data.products || []).forEach((item) => {
+          const itemId = String(item?._id || '').trim();
+          if (!itemId || itemId === String(id) || seenIds.has(itemId)) return;
+          seenIds.add(itemId);
+          uniqueProducts.push(item);
+        });
+        setRecommendedProducts(uniqueProducts);
       } catch (error) {
         console.error('Error fetching recommended products:', error);
       } finally {

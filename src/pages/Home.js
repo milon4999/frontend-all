@@ -36,6 +36,16 @@ const updateHomeCache = (data) => {
   homeCacheStore.timestamp = Date.now();
 };
 
+const deduplicateById = (items = []) => {
+  const seen = new Set();
+  return items.filter((item) => {
+    const id = String(item?._id || '').trim();
+    if (!id || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+};
+
 const Home = () => {
   const storeCurrency = getAdminSettings()?.currency || 'USD';
   const cachedHome = getHomeCache();
@@ -74,17 +84,17 @@ const Home = () => {
         const productsRes = await productsAPI.getAll({ featured: true, limit: 8 });
         console.log('API Response:', productsRes);
         console.log('Products data:', productsRes.data);
-        const featured = productsRes.data.products;
+        const featured = deduplicateById(productsRes.data.products);
 
         // Fetch products sorted by sales count for Top Sale section
         const saleProductsRes = await productsAPI.getAll({ sort: '-sales', limit: 50 });
-        const saleFiltered = saleProductsRes.data.products.filter(
+        const saleFiltered = deduplicateById(saleProductsRes.data.products).filter(
           (product) => product.comparePrice && Number(product.comparePrice) > Number(product.price)
         );
         const topSale = saleFiltered.slice(0, 10);
 
         const latestProductsRes = await productsAPI.getAll({ sort: '-createdAt', limit: 10, page: 1 });
-        const latest = latestProductsRes.data.products;
+        const latest = deduplicateById(latestProductsRes.data.products);
         const hasMore = latest.length === 10;
 
         if (!active) return;
@@ -170,7 +180,7 @@ const Home = () => {
       
       if (response.data.products.length > 0) {
         setLatestProducts((prev) => {
-          const merged = [...prev, ...response.data.products];
+          const merged = deduplicateById([...prev, ...response.data.products]);
           updateHomeCache({
             latestProducts: merged,
             latestPage: nextPage,
