@@ -234,7 +234,7 @@ const Products = () => {
                       <h3 className="font-bold text-xs sm:text-base lg:text-lg text-gray-900 line-clamp-2 min-h-[2rem] sm:min-h-[3rem] leading-tight mb-0 sm:mb-3">
                         {product.name}
                       </h3>
-                      <div className="flex items-center justify-between mb-1 sm:mb-4">
+                      <div className="flex items-center justify-between mb-0 sm:mb-4">
                         <div className="flex items-center">
                           <div className="flex items-center bg-yellow-50 border border-yellow-100 px-0.5 py-0.5 rounded-sm sm:rounded-lg">
                             <Star className="h-2.5 w-2.5 sm:h-4 sm:w-4 text-yellow-500 fill-yellow-500" />
