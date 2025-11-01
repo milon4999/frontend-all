@@ -548,14 +548,14 @@ const Home = () => {
 
           {/* Products Grid Container */}
           {latestLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-0.5 md:gap-4">
               {[...Array(10)].map((_, i) => (
                 <div key={i} className="bg-gray-200 rounded-lg h-64 md:h-80 animate-pulse"></div>
               ))}
             </div>
           ) : latestProducts.length > 0 ? (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-0.5 md:gap-4">
               {latestProducts.map((product) => (
                 <Link
                   key={product._id}
@@ -615,7 +615,7 @@ const Home = () => {
               
               {/* Loading More Indicator */}
               {loadingMore && (
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4 mt-3 md:mt-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-0.5 md:gap-4 mt-3 md:mt-4">
                   {[...Array(10)].map((_, i) => (
                     <div key={i} className="bg-gray-200 rounded-lg h-64 md:h-80 animate-pulse"></div>
                   ))}
