@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Star, ShoppingCart, Heart, Share2, Shield, Truck, RotateCcw, ChevronRight, Plus, Minus, Check, Info, Tag, Package, X, ArrowLeft, ChevronLeft, Zap } from 'lucide-react';
 import { fetchProductById } from '../store/slices/productSlice';
-import { productsAPI } from '../services/api';
+import { productsAPI, reviewsAPI } from '../services/api';
 import { addToCart } from '../store/slices/cartSlice';
 import { addToWishlist } from '../store/slices/wishlistSlice';
 import { toast } from 'react-toastify';
@@ -30,8 +30,19 @@ const ProductDetail = () => {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isVariantModalOpen, setIsVariantModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [reviewStats, setReviewStats] = useState({ average: 0, count: 0 });
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [eligibility, setEligibility] = useState({ canReview: false, reason: '' });
+  const [reviewForm, setReviewForm] = useState({ rating: 5, title: '', comment: '' });
+  const [submittingReview, setSubmittingReview] = useState(false);
   
   const DESCRIPTION_CHAR_LIMIT = 300;
+  const REVIEW_PAGE_LIMIT = 6;
+
+  const displayedAverage = Number(reviewStats.average || product?.ratings?.average || 0);
+  const displayedCount = Number(reviewStats.count || product?.ratings?.count || 0);
+  const roundedAverage = Math.floor(displayedAverage);
 
   const { 
     currentIndex: currentImageIndex, 
@@ -63,6 +74,109 @@ const ProductDetail = () => {
     
     fetchRecommended();
   }, [dispatch, id]);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      if (!id) return;
+      setReviewsLoading(true);
+      try {
+        const [reviewsRes, eligibilityRes] = await Promise.all([
+          reviewsAPI.getByProduct(id, { limit: REVIEW_PAGE_LIMIT }),
+          isAuthenticated ? reviewsAPI.checkEligibility(id) : Promise.resolve({ data: { success: false, canReview: false } })
+        ]);
+
+        if (reviewsRes?.data?.success) {
+          setReviews(reviewsRes.data.reviews || []);
+          setReviewStats((prev) => ({
+            average: prev.average,
+            count: typeof reviewsRes.data.total === 'number' ? reviewsRes.data.total : prev.count
+          }));
+        }
+
+        if (eligibilityRes?.data) {
+          setEligibility({
+            canReview: Boolean(eligibilityRes.data.canReview),
+            reason: eligibilityRes.data.message || ''
+          });
+        } else {
+          setEligibility({ canReview: false, reason: '' });
+        }
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+        setReviews([]);
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+
+    fetchReviews();
+  }, [id, isAuthenticated, product?.ratings?.average]);
+
+  const ratingBreakdown = useMemo(() => {
+    if (!reviews?.length) return [0, 0, 0, 0, 0];
+    const counts = [0, 0, 0, 0, 0];
+    reviews.forEach((r) => {
+      const index = Math.max(1, Math.min(5, Math.round(r.rating))) - 1;
+      counts[index] += 1;
+    });
+    return counts.reverse();
+  }, [reviews]);
+
+  useEffect(() => {
+    if (product?.ratings) {
+      setReviewStats((prev) => ({
+        average: typeof product.ratings.average === 'number' ? product.ratings.average : prev.average,
+        count: typeof product.ratings.count === 'number' ? product.ratings.count : prev.count
+      }));
+    }
+  }, [product?.ratings?.average, product?.ratings?.count]);
+
+  const handleReviewInputChange = (field, value) => {
+    setReviewForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!product || !eligibility.canReview) {
+      toast.error(eligibility.reason || 'You are not eligible to review this product.');
+      return;
+    }
+
+    if (!reviewForm.comment.trim()) {
+      toast.error('Please add your review comments.');
+      return;
+    }
+
+    try {
+      setSubmittingReview(true);
+      await reviewsAPI.create({
+        product: product._id,
+        rating: Number(reviewForm.rating),
+        title: reviewForm.title,
+        comment: reviewForm.comment
+      });
+      toast.success('Review submitted successfully!');
+      setReviewForm({ rating: 5, title: '', comment: '' });
+
+      setEligibility({ canReview: false, reason: 'You have already reviewed this product.' });
+
+      await dispatch(fetchProductById(id));
+
+      const updatedReviews = await reviewsAPI.getByProduct(product._id, { limit: REVIEW_PAGE_LIMIT });
+      if (updatedReviews?.data?.success) {
+        setReviews(updatedReviews.data.reviews || []);
+        setReviewStats((prev) => ({
+          average: prev.average,
+          count: typeof updatedReviews.data.total === 'number' ? updatedReviews.data.total : prev.count
+        }));
+      }
+    } catch (error) {
+      const message = error?.response?.data?.message || 'Failed to submit review. Please try again.';
+      toast.error(message);
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   useEffect(() => {
     setSelectedImage(currentImageIndex);
@@ -378,7 +492,7 @@ const ProductDetail = () => {
                     <Star
                       key={i}
                       className={`h-5 w-5 ${
-                        i < Math.floor(product.ratings?.average || 0)
+                        i < roundedAverage
                           ? 'text-yellow-400 fill-current'
                           : 'text-gray-300'
                       }`}
@@ -386,7 +500,7 @@ const ProductDetail = () => {
                   ))}
                 </div>
                 <span className="text-gray-600 font-medium">
-                  {product.ratings?.average?.toFixed(1) || '0.0'} ({product.ratings?.count || 0} reviews)
+                  {displayedAverage.toFixed(1)} ({displayedCount} review{displayedCount === 1 ? '' : 's'})
                 </span>
               </div>
             </div>
@@ -640,10 +754,159 @@ const ProductDetail = () => {
               )}
 
               {activeTab === 'reviews' && (
-                <div className="text-center py-12">
-                  <Star className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No reviews yet</h3>
-                  <p className="text-gray-500">Be the first to review this product</p>
+                <div className="space-y-8">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900">Customer Reviews</h3>
+                      <p className="text-sm text-gray-500">Average rating based on customer feedback</p>
+                      <div className="mt-3 flex items-center">
+                        <span className="text-4xl font-extrabold text-yellow-500">{displayedAverage.toFixed(1)}</span>
+                        <div className="ml-3">
+                          <div className="flex items-center">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-5 w-5 ${
+                                  i < Math.round(displayedAverage || 0)
+                                    ? 'text-yellow-400 fill-current'
+                                    : 'text-gray-300'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <p className="text-sm text-gray-600">{displayedCount} review{displayedCount === 1 ? '' : 's'}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex-1 max-w-md">
+                      <div className="space-y-2">
+                        {ratingBreakdown.map((count, idx) => {
+                          const starLevel = 5 - idx;
+                          const percentage = reviewStats.count ? Math.round((count / reviewStats.count) * 100) : 0;
+                          return (
+                            <div key={starLevel} className="flex items-center space-x-3">
+                              <span className="w-8 text-sm font-medium text-gray-700">{starLevel}★</span>
+                              <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-yellow-400"
+                                  style={{ width: `${percentage}%` }}
+                                />
+                              </div>
+                              <span className="w-10 text-sm text-gray-500 text-right">{percentage}%</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {isAuthenticated && (
+                    <div className="bg-white border rounded-2xl p-6 shadow-sm">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-lg font-semibold text-gray-900">Share your experience</h4>
+                        {eligibility.canReview ? (
+                          <span className="inline-flex items-center text-sm text-green-600 font-medium">
+                            <Check className="h-4 w-4 mr-1" /> Verified Purchase
+                          </span>
+                        ) : (
+                          <span className="text-sm text-gray-500">{eligibility.reason || 'Only verified buyers can submit reviews.'}</span>
+                        )}
+                      </div>
+
+                      <form className="space-y-4" onSubmit={handleSubmitReview}>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Rating</label>
+                          <div className="flex items-center space-x-2">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <button
+                                key={star}
+                                type="button"
+                                onClick={() => handleReviewInputChange('rating', star)}
+                                className={`p-2 rounded-full ${reviewForm.rating >= star ? 'text-yellow-500' : 'text-gray-300'}`}
+                              >
+                                <Star className="h-6 w-6" />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Title (optional)</label>
+                          <input
+                            type="text"
+                            value={reviewForm.title}
+                            onChange={(e) => handleReviewInputChange('title', e.target.value)}
+                            placeholder="Great quality!"
+                            className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Share your thoughts</label>
+                          <textarea
+                            value={reviewForm.comment}
+                            onChange={(e) => handleReviewInputChange('comment', e.target.value)}
+                            rows={4}
+                            placeholder="Tell us about the product quality, delivery, fit, etc."
+                            className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                          />
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={!eligibility.canReview || submittingReview}
+                          className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:from-blue-700 hover:to-purple-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                        >
+                          {submittingReview ? 'Submitting...' : 'Submit Review'}
+                        </button>
+                      </form>
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    {reviewsLoading ? (
+                      <div className="py-8 text-center text-gray-500">Loading reviews...</div>
+                    ) : reviews.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Star className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No reviews yet</h3>
+                        <p className="text-gray-500">Be the first to share your thoughts on this product.</p>
+                      </div>
+                    ) : (
+                      reviews.map((review) => (
+                        <div key={review._id} className="bg-white border rounded-2xl p-6 shadow-sm">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-sm font-semibold text-gray-900">{review.user?.name || 'Customer'}</span>
+                                {review.verified && (
+                                  <span className="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-700">
+                                    <Check className="h-3 w-3 mr-1" /> Verified Buyer
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-gray-500">{new Date(review.createdAt).toLocaleDateString()}</p>
+                            </div>
+                            <div className="flex items-center">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-4 w-4 ${
+                                    i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          {review.title && (
+                            <h4 className="mt-4 text-lg font-semibold text-gray-900">{review.title}</h4>
+                          )}
+                          <p className="mt-2 text-gray-700 whitespace-pre-wrap">{review.comment}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -754,9 +1017,150 @@ const ProductDetail = () => {
             isOpen={openSection === 'reviews'}
             onToggle={() => setOpenSection(openSection === 'reviews' ? null : 'reviews')}
           >
-            <div className="text-center py-6">
-              <Star className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-              <h3 className="font-medium text-gray-900">No reviews yet</h3>
+            <div className="space-y-6">
+              <div className="bg-white border rounded-2xl p-5 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900">Customer Reviews</h4>
+                    <p className="text-xs text-gray-500">Average rating from verified buyers</p>
+                  </div>
+                  <span className="text-3xl font-bold text-yellow-500">{displayedAverage.toFixed(1)}</span>
+                </div>
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="flex items-center">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-4 w-4 ${
+                          i < Math.round(displayedAverage || 0)
+                            ? 'text-yellow-400 fill-current'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-sm text-gray-600">{displayedCount} review{displayedCount === 1 ? '' : 's'}</span>
+                </div>
+
+                <div className="mt-4 space-y-2">
+                  {ratingBreakdown.map((count, idx) => {
+                    const starLevel = 5 - idx;
+                    const percentage = reviewStats.count ? Math.round((count / reviewStats.count) * 100) : 0;
+                    return (
+                      <div key={starLevel} className="flex items-center space-x-2">
+                        <span className="w-8 text-xs font-medium text-gray-700">{starLevel}★</span>
+                        <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                          <div className="h-full bg-yellow-400" style={{ width: `${percentage}%` }} />
+                        </div>
+                        <span className="w-10 text-xs text-gray-500 text-right">{percentage}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {isAuthenticated && (
+                <div className="bg-white border rounded-2xl p-5 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-base font-semibold text-gray-900">Share your review</h4>
+                    {eligibility.canReview ? (
+                      <span className="inline-flex items-center text-xs font-semibold text-green-600">
+                        <Check className="h-3.5 w-3.5 mr-1" /> Verified Purchase
+                      </span>
+                    ) : (
+                      <span className="text-xs text-gray-500 text-right">{eligibility.reason || 'Only verified buyers can submit reviews.'}</span>
+                    )}
+                  </div>
+
+                  <form className="space-y-3" onSubmit={handleSubmitReview}>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Rating</label>
+                      <div className="flex items-center space-x-1.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => handleReviewInputChange('rating', star)}
+                            className={`p-1.5 rounded-full ${reviewForm.rating >= star ? 'text-yellow-500' : 'text-gray-300'}`}
+                          >
+                            <Star className="h-5 w-5" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Title (optional)</label>
+                      <input
+                        type="text"
+                        value={reviewForm.title}
+                        onChange={(e) => handleReviewInputChange('title', e.target.value)}
+                        placeholder="Great product!"
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Your review</label>
+                      <textarea
+                        value={reviewForm.comment}
+                        onChange={(e) => handleReviewInputChange('comment', e.target.value)}
+                        rows={3}
+                        placeholder="Tell us about fit, quality, delivery ..."
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={!eligibility.canReview || submittingReview}
+                      className="w-full px-4 py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold hover:from-blue-700 hover:to-purple-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                    >
+                      {submittingReview ? 'Submitting...' : 'Submit Review'}
+                    </button>
+                  </form>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                {reviewsLoading ? (
+                  <div className="py-6 text-center text-gray-500 text-sm">Loading reviews...</div>
+                ) : reviews.length === 0 ? (
+                  <div className="text-center py-6">
+                    <Star className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <h3 className="font-medium text-gray-900">No reviews yet</h3>
+                    <p className="text-sm text-gray-500">Be the first to share your thoughts.</p>
+                  </div>
+                ) : (
+                  reviews.map((review) => (
+                    <div key={review._id} className="bg-white border rounded-2xl p-5 shadow-sm space-y-3 text-left">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">{review.user?.name || 'Customer'}</p>
+                          <p className="text-xs text-gray-500">{new Date(review.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <div className="flex items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`h-4 w-4 ${
+                                i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      {review.title && <p className="text-sm font-semibold text-gray-900">{review.title}</p>}
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{review.comment}</p>
+                      {review.verified && (
+                        <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full bg-green-100 text-green-700">
+                          <Check className="h-3 w-3 mr-1" /> Verified Buyer
+                        </span>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </CollapsibleSection>
 

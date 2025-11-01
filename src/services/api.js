@@ -86,6 +86,7 @@ export const wishlistAPI = {
 // Reviews API
 export const reviewsAPI = {
   getByProduct: (productId, params) => api.get(`/reviews/product/${productId}`, { params }),
+  checkEligibility: (productId) => api.get(`/reviews/product/${productId}/eligibility`),
   create: (data) => api.post('/reviews', data),
   markHelpful: (id) => api.put(`/reviews/${id}/helpful`),
 };
