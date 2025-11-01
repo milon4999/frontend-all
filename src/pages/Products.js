@@ -111,7 +111,7 @@ const Products = () => {
   };
 
   return (
-    <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-6 py-6 lg:py-10">
+    <div className="max-w-full mx-auto px-1 sm:px-4 lg:px-6 py-6 lg:py-10">
       <div className="flex justify-between items-center mb-6 lg:mb-8">
         <div>
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 mb-1">Products</h1>
@@ -195,7 +195,7 @@ const Products = () => {
         {/* Products Grid */}
         <div className="flex-1">
           {loading && currentPage === 1 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-0.5 sm:gap-3 lg:gap-3">
               {[...Array(12)].map((_, i) => (
                 <div key={i} className="bg-gray-200 rounded-xl h-80 sm:h-96 animate-pulse"></div>
               ))}
@@ -206,7 +206,7 @@ const Products = () => {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-0.5 sm:gap-3 lg:gap-3">
                 {products.map((product) => (
                   <Link
                     key={product._id}
@@ -266,7 +266,7 @@ const Products = () => {
 
               {/* Loading More Indicator */}
               {loadingMore && (
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-3 mt-3 sm:mt-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-0.5 sm:gap-3 lg:gap-3 mt-3 sm:mt-6">
                   {[...Array(8)].map((_, i) => (
                     <div key={i} className="bg-gray-200 rounded-xl h-80 sm:h-96 animate-pulse"></div>
                   ))}
