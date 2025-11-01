@@ -197,7 +197,7 @@ const Products = () => {
           {loading && currentPage === 1 ? (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-0.5 sm:gap-3 lg:gap-3">
               {[...Array(12)].map((_, i) => (
-                <div key={i} className="bg-gray-200 rounded-xl h-80 sm:h-96 animate-pulse"></div>
+                <div key={i} className="bg-gray-200 rounded-lg sm:rounded-2xl h-80 sm:h-96 animate-pulse"></div>
               ))}
             </div>
           ) : products.length === 0 ? (
@@ -211,49 +211,53 @@ const Products = () => {
                   <Link
                     key={product._id}
                     to={`/products/${product._id}`}
-                    className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:border-pink-200 hover:-translate-y-1 transition-all duration-300 group flex flex-col"
+                    className="bg-white rounded-lg sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:border-pink-200 hover:-translate-y-1 transition-all duration-300 group flex flex-col"
                   >
-                    <div className="relative h-48 sm:h-56 lg:h-72 xl:h-80 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+                    <div className="relative h-60 sm:h-60 lg:h-72 xl:h-80 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
                       <img
                         src={product.images[0]?.url || 'https://via.placeholder.com/300'}
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                       />
                       {product.comparePrice && (
-                        <div className="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1.5 rounded-full text-sm sm:text-base font-extrabold shadow-xl">
+                        <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-gradient-to-r from-red-500 to-red-600 text-white px-2.5 py-1.5 rounded-full text-xs sm:text-base font-extrabold shadow-xl">
                           {Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)}% OFF
                         </div>
                       )}
                       {product.inventory.stock === 0 && (
                         <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center backdrop-blur-sm">
-                          <span className="text-white font-bold text-base sm:text-lg bg-red-600 px-5 py-2.5 rounded-xl shadow-lg">Out of Stock</span>
+                          <span className="text-white font-bold text-sm sm:text-lg bg-red-600 px-4 py-2.5 rounded-xl shadow-lg">Out of Stock</span>
                         </div>
                       )}
                     </div>
-                    <div className="p-3 sm:p-4 lg:p-5 flex flex-col flex-grow bg-white">
-                      <h3 className="font-bold text-sm sm:text-base lg:text-lg text-gray-900 line-clamp-2 min-h-[2.5rem] sm:min-h-[3rem] leading-tight mb-0 sm:mb-3">{product.name}</h3>
-                      <div className="flex items-center justify-between mb-3 sm:mb-4">
+                    <div className="p-2 sm:p-4 lg:p-5 flex flex-col flex-grow bg-white">
+                      <h3 className="font-bold text-[11px] sm:text-base lg:text-lg text-gray-900 line-clamp-2 min-h-[2.1rem] sm:min-h-[3rem] leading-tight mb-0 sm:mb-3">
+                        {product.name}
+                      </h3>
+                      <div className="flex items-center justify-between mb-1.5 sm:mb-4">
                         <div className="flex items-center">
-                          <div className="flex items-center bg-yellow-50 border border-yellow-100 px-2.5 py-1 rounded-lg">
-                            <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-500 fill-yellow-500" />
-                            <span className="ml-1.5 text-xs sm:text-sm font-bold text-gray-800">
+                          <div className="flex items-center bg-yellow-50 border border-yellow-100 px-1 py-0.5 rounded-sm sm:rounded-lg">
+                            <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 fill-yellow-500" />
+                            <span className="ml-1 text-[10px] sm:text-sm font-bold text-gray-800">
                               {product.ratings.average.toFixed(1)}
                             </span>
                           </div>
-                          <span className="ml-2 text-xs sm:text-sm text-gray-500 font-medium">
+                          <span className="ml-1 text-[10px] sm:text-sm text-gray-500 font-medium">
                             ({product.ratings.count})
                           </span>
                         </div>
-                        <span className="text-xs sm:text-sm text-gray-500 font-medium">
+                        <span className="text-[10px] sm:text-sm text-gray-500 font-medium">
                           {product.sales || 0} sold
                         </span>
                       </div>
-                      
-                      <div className="mt-auto pt-2 border-t border-gray-100">
-                        <div className="flex items-baseline gap-2 flex-wrap">
-                          <span className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-pink-600">{formatPrice(product.price, product.currency)}</span>
+
+                      <div className="mt-auto pt-1 border-t border-gray-100">
+                        <div className="flex items-baseline gap-1 flex-wrap">
+                          <span className="text-base sm:text-2xl lg:text-3xl font-extrabold text-pink-600">
+                            {formatPrice(product.price, product.currency)}
+                          </span>
                           {product.comparePrice && (
-                            <span className="text-xs sm:text-sm text-gray-400 line-through font-medium">
+                            <span className="text-[10px] sm:text-sm text-gray-400 line-through font-medium">
                               {formatPrice(product.comparePrice, product.currency)}
                             </span>
                           )}
@@ -268,7 +272,7 @@ const Products = () => {
               {loadingMore && (
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-0.5 sm:gap-3 lg:gap-3 mt-3 sm:mt-6">
                   {[...Array(8)].map((_, i) => (
-                    <div key={i} className="bg-gray-200 rounded-xl h-80 sm:h-96 animate-pulse"></div>
+                    <div key={i} className="bg-gray-200 rounded-lg sm:rounded-2xl h-80 sm:h-96 animate-pulse"></div>
                   ))}
                 </div>
               )}
