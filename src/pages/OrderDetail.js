@@ -83,7 +83,7 @@ const OrderDetail = () => {
                 <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
               </div>
               <div className="text-right">
-                <p className="font-bold">{formatPrice(
+                <p className="font-extrabold text-pink-600">{formatPrice(
                   item.price * item.quantity,
                   item.currency || order.currency || item.product?.currency || 'USD'
                 )}</p>
@@ -98,28 +98,28 @@ const OrderDetail = () => {
         <div className="space-y-2">
           <div className="flex justify-between">
             <span>Subtotal</span>
-            <span>{formatPrice(
+            <span className="font-semibold">{formatPrice(
               order.pricing.subtotal,
               order.currency || order.items?.[0]?.currency || order.items?.[0]?.product?.currency || 'USD'
             )}</span>
           </div>
           <div className="flex justify-between">
             <span>Shipping</span>
-            <span>{formatPrice(
+            <span className="font-semibold">{formatPrice(
               order.pricing.shipping,
               order.currency || order.items?.[0]?.currency || order.items?.[0]?.product?.currency || 'USD'
             )}</span>
           </div>
           <div className="flex justify-between">
             <span>Tax</span>
-            <span>{formatPrice(
+            <span className="font-semibold">{formatPrice(
               order.pricing.tax,
               order.currency || order.items?.[0]?.currency || order.items?.[0]?.product?.currency || 'USD'
             )}</span>
           </div>
-          <div className="border-t pt-2 flex justify-between font-bold text-lg">
-            <span>Total</span>
-            <span>{formatPrice(
+          <div className="border-t pt-2 flex justify-between text-lg">
+            <span className="font-bold">Total</span>
+            <span className="font-extrabold text-pink-600">{formatPrice(
               order.pricing.total,
               order.currency || order.items?.[0]?.currency || order.items?.[0]?.product?.currency || 'USD'
             )}</span>

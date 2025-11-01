@@ -356,9 +356,9 @@ const ProductDetail = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center space-x-3">
-                    <span className="text-2xl md:text-3xl font-bold text-pink-600">{formatPrice(product.price, product.currency)}</span>
+                    <span className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-pink-600">{formatPrice(product.price, product.currency)}</span>
                     {product.comparePrice && (
-                      <span className="text-lg md:text-xl text-gray-500 line-through">
+                      <span className="text-lg md:text-xl text-gray-500 line-through font-medium">
                         {formatPrice(product.comparePrice, product.currency)}
                       </span>
                     )}
@@ -823,31 +823,31 @@ const ProductDetail = () => {
                     )}
                   </div>
                   
-                  <div className="p-1.5 sm:p-4 flex flex-col">
+                  <div className="p-2 sm:p-4 flex flex-col h-[95px] sm:h-auto">
                     {/* Product Name */}
-                    <h3 className="font-semibold text-gray-800 mb-1 sm:mb-2 text-[11px] sm:text-base leading-tight truncate">
+                    <h3 className="font-bold text-gray-800 mb-1 sm:mb-2 text-[10px] sm:text-base leading-tight line-clamp-2 group-hover:text-primary-600 transition-colors min-h-[18px] sm:min-h-0">
                       {recProduct.name}
                     </h3>
                     
                     {/* Rating & Sales */}
                     <div className="flex items-center justify-between mb-1 sm:mb-3">
-                      <div className="flex items-center gap-0.5 sm:gap-1">
-                        <Star className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 text-yellow-400 fill-current flex-shrink-0" />
-                        <span className="text-[9px] sm:text-xs text-gray-600">
-                          {recProduct.ratings.average.toFixed(1)} ({recProduct.ratings.count})
+                      <div className="flex items-center gap-0.5 sm:gap-1 bg-yellow-50 px-1 sm:px-1.5 py-0.5 rounded">
+                        <Star className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 text-yellow-500 fill-current flex-shrink-0" />
+                        <span className="text-[8px] sm:text-xs font-semibold text-gray-700">
+                          {recProduct.ratings.average.toFixed(1)} <span className="text-gray-500">({recProduct.ratings.count})</span>
                         </span>
                       </div>
-                      <span className="text-[9px] sm:text-xs text-gray-500">
+                      <span className="text-[8px] sm:text-xs text-gray-500 font-medium">
                         {recProduct.sales || 0} sold
                       </span>
                     </div>
                     
                     {/* Price Section */}
-                    <div className="mt-auto">
-                      <div className="flex items-baseline gap-1 sm:gap-2">
-                        <span className="text-sm sm:text-2xl font-bold text-red-600 leading-none">{formatPrice(recProduct.price, recProduct.currency)}</span>
+                    <div className="mt-auto pt-1 sm:pt-2 border-t border-gray-100">
+                      <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
+                        <span className="text-base sm:text-xl lg:text-2xl font-extrabold text-pink-600 leading-none">{formatPrice(recProduct.price, recProduct.currency)}</span>
                         {recProduct.comparePrice && (
-                          <span className="text-[9px] sm:text-sm text-gray-400 line-through leading-none">
+                          <span className="text-[8px] sm:text-sm text-gray-400 line-through font-medium leading-none">
                             {formatPrice(recProduct.comparePrice, recProduct.currency)}
                           </span>
                         )}

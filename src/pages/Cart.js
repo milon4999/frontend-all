@@ -88,7 +88,7 @@ const Cart = () => {
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-sm sm:text-base truncate">{item.name}</h3>
                 {item.variant && <p className="text-xs sm:text-sm text-gray-600 truncate">{item.variant}</p>}
-                <p className="text-base sm:text-lg font-bold text-primary-600">{formatPrice(item.price, item.currency || currency)}</p>
+                <p className="text-base sm:text-xl font-extrabold text-primary-600">{formatPrice(item.price, item.currency || currency)}</p>
               </div>
               <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
                 <button
@@ -136,9 +136,9 @@ const Cart = () => {
                 <span className="text-gray-600">Shipping (selected)</span>
                 <span className="font-semibold">{shippingSelected === 0 ? 'Free' : formatPrice(shippingSelected, currency)}</span>
               </div>
-              <div className="border-t pt-3 flex justify-between text-base sm:text-lg font-bold">
-                <span>Total (selected)</span>
-                <span className="text-primary-600">{formatPrice(totalSelected, currency)}</span>
+              <div className="border-t pt-3 flex justify-between text-base sm:text-lg">
+                <span className="font-bold">Total (selected)</span>
+                <span className="font-extrabold text-pink-600">{formatPrice(totalSelected, currency)}</span>
               </div>
             </div>
             <div className="grid grid-cols-1 gap-2 sm:gap-3">

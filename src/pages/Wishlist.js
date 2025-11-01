@@ -97,11 +97,11 @@ const Wishlist = () => {
 
                 {/* Price */}
                 <div className="mb-2 sm:mb-3">
-                  <span className="text-sm sm:text-lg md:text-xl font-bold text-pink-600">
+                  <span className="text-base sm:text-xl md:text-2xl font-extrabold text-pink-600">
                     {formatPrice(product.price, product.currency)}
                   </span>
                   {product.comparePrice && (
-                    <span className="ml-2 text-xs sm:text-sm text-gray-500 line-through">
+                    <span className="ml-2 text-xs sm:text-sm text-gray-500 line-through font-medium">
                       {formatPrice(product.comparePrice, product.currency)}
                     </span>
                   )}

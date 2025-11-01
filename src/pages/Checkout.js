@@ -316,7 +316,7 @@ const Checkout = () => {
                       ) : null}
                     </div>
                   </div>
-                  <span>{formatPrice(item.price * item.quantity, item.currency || currency)}</span>
+                  <span className="font-semibold">{formatPrice(item.price * item.quantity, item.currency || currency)}</span>
                 </div>
               ))}
             </div>
@@ -343,7 +343,7 @@ const Checkout = () => {
             <div className="border-t pt-4 space-y-2">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>{formatPrice(subtotal, currency)}</span>
+                <span className="font-semibold">{formatPrice(subtotal, currency)}</span>
               </div>
               {offerSavings > 0 ? (
                 <div className="flex justify-between text-green-600">
@@ -353,12 +353,12 @@ const Checkout = () => {
               ) : null}
               <div className="flex justify-between">
                 <span>Shipping</span>
-                <span>{shipping === 0 ? 'Free' : formatPrice(shipping, currency)}</span>
+                <span className="font-semibold">{shipping === 0 ? 'Free' : formatPrice(shipping, currency)}</span>
               </div>
               {taxSettings.enabled && (
                 <div className="flex justify-between">
                   <span>Tax</span>
-                  <span>{formatPrice(tax, currency)}</span>
+                  <span className="font-semibold">{formatPrice(tax, currency)}</span>
                 </div>
               )}
               {discount > 0 ? (
@@ -367,9 +367,9 @@ const Checkout = () => {
                   <span>- {formatPrice(discount, currency)}</span>
                 </div>
               ) : null}
-              <div className="border-t pt-2 flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span>{formatPrice(total, currency)}</span>
+              <div className="border-t pt-2 flex justify-between text-lg">
+                <span className="font-bold">Total</span>
+                <span className="font-extrabold text-pink-600">{formatPrice(total, currency)}</span>
               </div>
             </div>
           </div>

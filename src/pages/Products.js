@@ -231,17 +231,21 @@ const Products = () => {
                       )}
                     </div>
                     <div className="p-3 sm:p-4 lg:p-5 flex flex-col flex-grow bg-white">
-                      <h3 className="font-bold text-sm sm:text-base lg:text-lg text-gray-900 mb-3 line-clamp-2 min-h-[2.5rem] sm:min-h-[3rem] leading-snug">{product.name}</h3>
-                      
-                      <div className="flex items-center mb-3 sm:mb-4">
-                        <div className="flex items-center bg-yellow-50 border border-yellow-100 px-2.5 py-1 rounded-lg">
-                          <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-500 fill-yellow-500" />
-                          <span className="ml-1.5 text-xs sm:text-sm font-bold text-gray-800">
-                            {product.ratings.average.toFixed(1)}
+                      <h3 className="font-bold text-sm sm:text-base lg:text-lg text-gray-900 line-clamp-2 min-h-[2.5rem] sm:min-h-[3rem] leading-tight">{product.name}</h3>
+                      <div className="flex items-center justify-between mb-3 sm:mb-4">
+                        <div className="flex items-center">
+                          <div className="flex items-center bg-yellow-50 border border-yellow-100 px-2.5 py-1 rounded-lg">
+                            <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-500 fill-yellow-500" />
+                            <span className="ml-1.5 text-xs sm:text-sm font-bold text-gray-800">
+                              {product.ratings.average.toFixed(1)}
+                            </span>
+                          </div>
+                          <span className="ml-2 text-xs sm:text-sm text-gray-500 font-medium">
+                            ({product.ratings.count})
                           </span>
                         </div>
-                        <span className="ml-2 text-xs sm:text-sm text-gray-500 font-medium">
-                          ({product.ratings.count})
+                        <span className="text-xs sm:text-sm text-gray-500 font-medium">
+                          {product.sales || 0} sold
                         </span>
                       </div>
                       

@@ -19,6 +19,9 @@ module.exports = {
           900: '#0c4a6e',
         },
       },
+      fontFamily: {
+        sans: ['Inter', 'Noto Sans Bengali', 'system-ui', '-apple-system', 'sans-serif'],
+      },
     },
   },
   plugins: [],

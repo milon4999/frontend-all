@@ -74,7 +74,7 @@ const Orders = () => {
                 <div className="text-sm text-gray-600">
                   {order.items.length} item(s)
                 </div>
-                <div className="text-lg font-bold">
+                <div className="text-xl font-extrabold text-pink-600">
                   {formatPrice(
                     order.pricing.total,
                     order.currency || order.items?.[0]?.currency || order.items?.[0]?.product?.currency || getAdminSettings()?.currency || 'USD'
