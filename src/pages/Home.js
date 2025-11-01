@@ -358,12 +358,12 @@ const Home = () => {
                   
                   <div className="p-1.5 sm:p-4 flex flex-col flex-grow bg-white">
                     {/* Product Name */}
-                    <h3 className="font-bold text-gray-800 mb-0.5 sm:mb-2 text-xs sm:text-base leading-tight line-clamp-2 group-hover:text-red-600 transition-colors min-h-[2rem] sm:min-h-0">
+                    <h3 className="font-bold text-gray-800 mb-0 sm:mb-2 text-xs sm:text-base leading-tight line-clamp-2 group-hover:text-red-600 transition-colors min-h-[1.1rem] sm:min-h-0">
                       {product.name}
                     </h3>
                     
                     {/* Rating & Sales */}
-                    <div className="flex items-center justify-between mb-1 sm:mb-3">
+                    <div className="flex items-center justify-between mb-0 sm:mb-3">
                       <div className="flex items-center gap-0.5 sm:gap-1 bg-yellow-50 px-0.5 sm:px-1.5 py-0.5 rounded">
                         <Star className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 text-yellow-500 fill-current flex-shrink-0" />
                         <span className="text-[9px] sm:text-xs font-semibold text-gray-700">
@@ -489,12 +489,12 @@ const Home = () => {
                   
                   <div className="p-1.5 sm:p-4 flex flex-col flex-grow bg-white">
                     {/* Product Name */}
-                    <h3 className="font-bold text-gray-800 mb-0.5 sm:mb-2 text-xs sm:text-base leading-tight line-clamp-2 group-hover:text-primary-600 transition-colors min-h-[2rem] sm:min-h-0">
+                    <h3 className="font-bold text-gray-800 mb-0 sm:mb-2 text-xs sm:text-base leading-tight line-clamp-2 group-hover:text-primary-600 transition-colors min-h-[1.1rem] sm:min-h-0">
                       {product.name}
                     </h3>
                     
                     {/* Rating & Sales */}
-                    <div className="flex items-center justify-between mb-1 sm:mb-3">
+                    <div className="flex items-center justify-between mb-0 sm:mb-3">
                       <div className="flex items-center gap-0.5 sm:gap-1 bg-yellow-50 px-0.5 sm:px-1.5 py-0.5 rounded">
                         <Star className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 text-yellow-500 fill-current flex-shrink-0" />
                         <span className="text-[9px] sm:text-xs font-semibold text-gray-700">
@@ -582,10 +582,10 @@ const Home = () => {
                       )}
                     </div>
                     <div className="p-1.5 sm:p-4 flex flex-col flex-grow bg-white">
-                      <h3 className="font-bold text-xs sm:text-base text-gray-900 line-clamp-2 min-h-[2rem] sm:min-h-[3rem] leading-tight mb-0 sm:mb-3">
+                      <h3 className="font-bold text-xs sm:text-base text-gray-900 line-clamp-2 min-h-[1.1rem] sm:min-h-[3rem] leading-tight mb-0 sm:mb-3">
                         {product.name}
                       </h3>
-                      <div className="flex items-center justify-between mb-1 sm:mb-4">
+                      <div className="flex items-center justify-between mb-0 sm:mb-4">
                         <div className="flex items-center">
                           <div className="flex items-center bg-yellow-50 border border-yellow-100 px-0.5 py-0.5 rounded-sm sm:rounded-lg">
                             <Star className="h-2.5 w-2.5 sm:h-4 sm:w-4 text-yellow-500 fill-yellow-500" />
