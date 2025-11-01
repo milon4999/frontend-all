@@ -791,7 +791,7 @@ const ProductDetail = () => {
           {recommendedLoading ? (
             <div className="flex space-x-1 md:space-x-3 overflow-hidden">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex-shrink-0 w-32 sm:w-64 bg-gray-200 rounded-lg h-52 sm:h-80 animate-pulse"></div>
+                <div key={i} className="flex-shrink-0 w-36 sm:w-64 bg-gray-200 rounded-lg md:rounded-xl h-52 sm:h-80 animate-pulse"></div>
               ))}
             </div>
           ) : recommendedProducts.length > 0 ? (
@@ -804,9 +804,9 @@ const ProductDetail = () => {
                 <Link
                   key={recProduct._id}
                   to={`/products/${recProduct._id}`}
-                  className="flex-shrink-0 w-32 sm:w-64 bg-white rounded-lg sm:rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group border border-gray-100"
+                  className="flex-shrink-0 w-36 sm:w-64 bg-white rounded-lg sm:rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group border border-gray-100"
                 >
-                  <div className="relative h-24 sm:h-48 overflow-hidden bg-gray-100">
+                  <div className="relative h-36 sm:h-48 overflow-hidden bg-gray-100">
                     <img
                       src={recProduct.images[0]?.url || 'https://via.placeholder.com/300'}
                       alt={recProduct.name}
@@ -823,31 +823,31 @@ const ProductDetail = () => {
                     )}
                   </div>
                   
-                  <div className="p-2 sm:p-4 flex flex-col h-[95px] sm:h-auto">
+                  <div className="p-1.5 sm:p-4 flex flex-col flex-grow bg-white">
                     {/* Product Name */}
-                    <h3 className="font-bold text-gray-800 mb-1 sm:mb-2 text-[10px] sm:text-base leading-tight line-clamp-2 group-hover:text-primary-600 transition-colors min-h-[18px] sm:min-h-0">
+                    <h3 className="font-bold text-gray-800 mb-0 sm:mb-2 text-xs sm:text-base leading-tight line-clamp-2 group-hover:text-primary-600 transition-colors min-h-[1.1rem] sm:min-h-0">
                       {recProduct.name}
                     </h3>
                     
                     {/* Rating & Sales */}
-                    <div className="flex items-center justify-between mb-1 sm:mb-3">
-                      <div className="flex items-center gap-0.5 sm:gap-1 bg-yellow-50 px-1 sm:px-1.5 py-0.5 rounded">
+                    <div className="flex items-center justify-between mb-0 sm:mb-3">
+                      <div className="flex items-center gap-0.5 sm:gap-1 bg-yellow-50 px-0.5 sm:px-1.5 py-0.5 rounded">
                         <Star className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 text-yellow-500 fill-current flex-shrink-0" />
-                        <span className="text-[8px] sm:text-xs font-semibold text-gray-700">
+                        <span className="text-[9px] sm:text-xs font-semibold text-gray-700">
                           {recProduct.ratings.average.toFixed(1)} <span className="text-gray-500">({recProduct.ratings.count})</span>
                         </span>
                       </div>
-                      <span className="text-[8px] sm:text-xs text-gray-500 font-medium">
+                      <span className="text-[9px] sm:text-xs text-gray-500 font-medium">
                         {recProduct.sales || 0} sold
                       </span>
                     </div>
                     
                     {/* Price Section */}
-                    <div className="mt-auto pt-1 sm:pt-2 border-t border-gray-100">
-                      <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
+                    <div className="mt-auto pt-0.5 sm:pt-2 border-t border-gray-100">
+                      <div className="flex items-baseline gap-0.5 sm:gap-2 flex-wrap">
                         <span className="text-base sm:text-xl lg:text-2xl font-extrabold text-pink-600 leading-none">{formatPrice(recProduct.price, recProduct.currency)}</span>
                         {recProduct.comparePrice && (
-                          <span className="text-[8px] sm:text-sm text-gray-400 line-through font-medium leading-none">
+                          <span className="text-[9px] sm:text-sm text-gray-400 line-through font-medium leading-none">
                             {formatPrice(recProduct.comparePrice, recProduct.currency)}
                           </span>
                         )}
