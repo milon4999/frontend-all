@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { ordersAPI, couponsAPI } from '../services/api';
@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { getPublicSettings } from '../utils/settings';
 import { Minus } from 'lucide-react';
 import { formatPrice } from '../utils/currency';
+import DeliveryAreaModal from '../components/DeliveryAreaModal';
 
 const Checkout = () => {
   const { items } = useSelector((state) => state.cart);
@@ -34,13 +35,12 @@ const Checkout = () => {
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
-    street: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    country: '',
+    address: '',
     phone: user?.phone || ''
   });
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [settingsVersion, setSettingsVersion] = useState(0);
 
   const [discount, setDiscount] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -49,57 +49,109 @@ const Checkout = () => {
 
   const subtotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   
-  // Get delivery methods from admin settings
-  const deliveryMethods = useMemo(() => {
-    const settings = getPublicSettings();
-    const adminSettings = localStorage.getItem('admin_settings');
-    let methods = {};
-    
-    if (adminSettings) {
-      try {
-        const parsed = JSON.parse(adminSettings);
-        methods = parsed.shipping?.methods || {};
-      } catch (_) {}
-    }
-    
-    // If no methods found in admin settings, try public settings
-    if (Object.keys(methods).length === 0) {
-      methods = settings?.shipping?.methods || {};
-    }
-    
-    // If still no methods, use defaults
-    if (Object.keys(methods).length === 0) {
-      methods = {
-        standard: { enabled: true, name: 'Standard', price: 10, freeAbove: 50 },
-        express: { enabled: true, name: 'Express', price: 20, freeAbove: 0 }
-      };
-    }
-    
-    return methods;
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        setSettingsVersion(v => v + 1);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
-  
-  // Get enabled delivery methods
-  const enabledDeliveryMethods = useMemo(() => {
-    const methods = [];
-    if (deliveryMethods.standard?.enabled !== false) {
-      methods.push({ id: 'standard', ...deliveryMethods.standard });
+
+  const [rawDeliveryOptions, setRawDeliveryOptions] = useState([]);
+
+  useEffect(() => {
+    const getOptions = () => {
+      const settings = getPublicSettings();
+      const adminSettings = localStorage.getItem('admin_settings');
+      let methods = {};
+
+      if (adminSettings) {
+        try {
+          const parsed = JSON.parse(adminSettings);
+          methods = parsed.shipping?.methods || {};
+        } catch (_) {}
+      } else if (settings?.shipping?.methods) {
+        methods = settings.shipping.methods;
+      }
+
+      const options = Object.entries(methods).map(([id, data]) => ({ id, ...data }));
+      return options.filter(opt => opt.enabled);
+    };
+    
+    setRawDeliveryOptions(getOptions());
+  }, [settingsVersion]);
+
+  const [selectedDelivery, setSelectedDelivery] = useState(null);
+
+  const displayDeliveryOptions = useMemo(() => {
+    // Calculate per-product subtotals
+    const productSubtotals = selectedItems.reduce((acc, item) => {
+      acc[item.productId] = (acc[item.productId] || 0) + (item.price * item.quantity);
+      return acc;
+    }, {});
+
+    // Check if any product qualifies for free shipping
+    const hasUnconditionalFreeShipping = selectedItems.some(item => item.freeShipping && !item.freeShippingThreshold);
+    
+    const hasConditionalFreeShipping = selectedItems.some(item => 
+      item.freeShipping && 
+      item.freeShippingThreshold > 0 && 
+      productSubtotals[item.productId] >= item.freeShippingThreshold
+    );
+    
+    // Check if cart subtotal qualifies for free shipping from delivery method
+    const freeDeliveryMethod = rawDeliveryOptions.find(opt => opt.freeAbove > 0 && subtotal >= opt.freeAbove);
+    
+    if (hasUnconditionalFreeShipping || hasConditionalFreeShipping || freeDeliveryMethod) {
+      return [{ id: 'free_delivery', name: 'ফ্রি ডেলিভারি', price: 0, freeAbove: 0, enabled: true }];
     }
-    if (deliveryMethods.express?.enabled !== false) {
-      methods.push({ id: 'express', ...deliveryMethods.express });
+    return rawDeliveryOptions;
+  }, [rawDeliveryOptions, subtotal, selectedItems]);
+
+  useEffect(() => {
+    const freeDeliveryAvailable = displayDeliveryOptions.some(opt => opt.id === 'free_delivery');
+    const freeDeliveryIsSelected = selectedDelivery?.id === 'free_delivery';
+
+    if (freeDeliveryAvailable && !freeDeliveryIsSelected) {
+      setSelectedDelivery(displayDeliveryOptions.find(opt => opt.id === 'free_delivery'));
+    } else if (!freeDeliveryAvailable && freeDeliveryIsSelected) {
+      setSelectedDelivery(displayDeliveryOptions.length > 0 ? displayDeliveryOptions[0] : null);
+    } else if (!selectedDelivery && displayDeliveryOptions.length > 0) {
+      setSelectedDelivery(displayDeliveryOptions[0]);
     }
-    return methods;
-  }, [deliveryMethods]);
-  
-  const [shippingMethod, setShippingMethod] = useState(() => enabledDeliveryMethods[0]?.id || 'standard');
-  
-  // Calculate shipping cost based on selected method
+  }, [displayDeliveryOptions, selectedDelivery]);
+
   const shipping = useMemo(() => {
-    const method = deliveryMethods[shippingMethod];
-    if (!method) return 0;
-    const price = Number(method.price || 0);
-    const freeAbove = Number(method.freeAbove || 0);
-    return freeAbove > 0 && subtotal >= freeAbove ? 0 : price;
-  }, [shippingMethod, subtotal, deliveryMethods]);
+    // Case 1: A product has 'freeShipping' checked and no threshold (or threshold is 0).
+    const hasUnconditionalFreeShipping = selectedItems.some(item => item.freeShipping && !item.freeShippingThreshold);
+    if (hasUnconditionalFreeShipping) return 0;
+
+    // Case 2: A product has 'freeShipping' checked and its subtotal meets the threshold.
+    const productSubtotals = selectedItems.reduce((acc, item) => {
+      acc[item.productId] = (acc[item.productId] || 0) + (item.price * item.quantity);
+      return acc;
+    }, {});
+
+    const hasConditionalFreeShipping = selectedItems.some(item => 
+      item.freeShipping && 
+      item.freeShippingThreshold > 0 && 
+      productSubtotals[item.productId] >= item.freeShippingThreshold
+    );
+    if (hasConditionalFreeShipping) return 0;
+
+    // Case 3: The total cart subtotal meets the delivery method's threshold.
+    if (selectedDelivery) {
+      const price = Number(selectedDelivery.price || 0);
+      const freeAbove = Number(selectedDelivery.freeAbove || 0);
+      if (freeAbove > 0 && subtotal >= freeAbove) return 0;
+      return price;
+    }
+
+    // Default to 0 if no delivery method is selected.
+    return 0;
+  }, [selectedItems, selectedDelivery, subtotal]);
   
   // Get tax settings from admin panel
   const taxSettings = useMemo(() => {
@@ -221,6 +273,19 @@ const Checkout = () => {
   };
 
   return (
+    <>
+      <DeliveryAreaModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        options={displayDeliveryOptions}
+        subtotal={subtotal}
+        selected={selectedDelivery}
+        onSelect={(option) => {
+          setSelectedDelivery(option);
+          setIsModalOpen(false);
+        }}
+        currency={currency}
+      />
     <div
       className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 md:pt-8 pb-28 md:pb-8"
       style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 88px)' }}
@@ -228,29 +293,6 @@ const Checkout = () => {
       <h1 className="text-3xl font-bold mb-4 md:mb-8">Checkout</h1>
 
       
-      {enabledDeliveryMethods.length > 0 && (
-        <div className="block lg:hidden mb-6">
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <h2 className="text-xl font-bold mb-3">Delivery Method</h2>
-            <div className="grid grid-cols-1 gap-3">
-              {enabledDeliveryMethods.map((method) => {
-                const price = Number(method.price || 0);
-                const freeAbove = Number(method.freeAbove || 0);
-                const isFree = freeAbove > 0 && subtotal >= freeAbove;
-                return (
-                  <label key={method.id} className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition ${shippingMethod === method.id ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}>
-                    <div className="flex items-center space-x-2">
-                      <input type="radio" name="shipping-mobile" value={method.id} checked={shippingMethod === method.id} onChange={() => setShippingMethod(method.id)} />
-                      <span className="font-medium">{method.name}</span>
-                    </div>
-                    <span className="text-xs text-gray-500">{isFree ? 'Free' : formatPrice(price, currency)}</span>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
         <div className="order-1 lg:order-2 lg:col-span-1">
@@ -408,7 +450,7 @@ const Checkout = () => {
             <h2 className="text-xl font-bold mb-4">Shipping Information</h2>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">আপনার নাম লিখুন *</label>
               <input
                 type="text"
                 required
@@ -419,64 +461,7 @@ const Checkout = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
-              <input
-                type="text"
-                required
-                value={formData.street}
-                onChange={(e) => setFormData({ ...formData, street: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.state}
-                  onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.zipCode}
-                  onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.country}
-                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">মোবাইল নাম্বার দিন *</label>
               <input
                 type="tel"
                 required
@@ -486,27 +471,23 @@ const Checkout = () => {
               />
             </div>
 
-            {enabledDeliveryMethods.length > 0 && (
-              <div className="pt-2 hidden lg:block">
-                <h2 className="text-xl font-bold mb-3">Delivery Method</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {enabledDeliveryMethods.map((method) => {
-                    const price = Number(method.price || 0);
-                    const freeAbove = Number(method.freeAbove || 0);
-                    const isFree = freeAbove > 0 && subtotal >= freeAbove;
-                    return (
-                      <label key={method.id} className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition ${shippingMethod === method.id ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}>
-                        <div className="flex items-center space-x-2">
-                          <input type="radio" name="shipping" value={method.id} checked={shippingMethod === method.id} onChange={() => setShippingMethod(method.id)} />
-                          <span className="font-medium">{method.name}</span>
-                        </div>
-                        <span className="text-xs text-gray-500">{isFree ? 'Free' : formatPrice(price, currency)}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">ঠিকানা লিখুন *</label>
+              <textarea
+                required
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">ডেলিভারি এরিয়া নিবার্চন করুন *</label>
+                <button type="button" onClick={() => setIsModalOpen(true)} className="w-full p-3 border rounded-lg text-left">
+                    {selectedDelivery ? `${selectedDelivery.name} - ${shipping === 0 ? 'Free' : formatPrice(shipping, currency)}` : 'Select Delivery Area'}
+                </button>
+            </div>
+
 
             <div className="pt-2 hidden lg:block">
               <h2 className="text-xl font-bold mb-3">Payment Method</h2>
@@ -546,6 +527,7 @@ const Checkout = () => {
         </div>
       </div>
     </div>
+   </>
   );
 };
 

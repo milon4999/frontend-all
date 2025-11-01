@@ -137,7 +137,7 @@ const ProductDetail = () => {
         count: typeof product.ratings.count === 'number' ? product.ratings.count : prev.count
       }));
     }
-  }, [product?.ratings?.average, product?.ratings?.count]);
+  }, [product?.ratings]);
 
   const handleReviewInputChange = (field, value) => {
     setReviewForm((prev) => ({ ...prev, [field]: value }));
@@ -224,7 +224,9 @@ const ProductDetail = () => {
       currency: product.currency,
       image: chosenImage,
       quantity,
-      variant: variantString
+      variant: variantString,
+      freeShipping: product.shipping?.freeShipping,
+      freeShippingThreshold: product.shipping?.freeShippingThreshold
     }));
     toast.success('Added to cart!');
   };
@@ -247,7 +249,9 @@ const ProductDetail = () => {
       currency: product.currency,
       image: chosenImage,
       quantity,
-      variant: variantString
+      variant: variantString,
+      freeShipping: product.shipping?.freeShipping,
+      freeShippingThreshold: product.shipping?.freeShippingThreshold
     };
     navigate('/checkout', { state: { buyNowItem } });
   };

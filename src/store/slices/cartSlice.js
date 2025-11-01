@@ -31,7 +31,7 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addToCart: (state, action) => {
-      const { productId, name, price, image, quantity = 1, variant, comparePrice, currency } = action.payload;
+      const { productId, quantity = 1, variant } = action.payload;
       
       // Ensure items is always an array
       if (!Array.isArray(state.items)) {
@@ -45,7 +45,12 @@ const cartSlice = createSlice({
       if (existingItem) {
         existingItem.quantity += quantity;
       } else {
-        state.items.push({ productId, name, price, comparePrice, image, quantity, variant, currency });
+        state.items.push({ 
+          ...action.payload, 
+          quantity: action.payload.quantity || 1,
+          freeShipping: action.payload.freeShipping,
+          freeShippingThreshold: action.payload.freeShippingThreshold
+        });
       }
 
       state.total = calculateTotal(state.items);

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { toast } from 'react-toastify';
 import { uploadAPI, settingsAPI } from '../../services/api';
-import { Settings as SettingsIcon, CreditCard, Truck, Palette, Bell, Upload, Save, Image as ImageIcon, Facebook, Receipt } from 'lucide-react';
+import { Settings as SettingsIcon, CreditCard, Truck, Palette, Bell, Upload, Save, Image as ImageIcon, Facebook, Receipt, PlusCircle, Trash2 } from 'lucide-react';
 
 const tabs = [
   { key: 'general', label: 'General', Icon: SettingsIcon },
@@ -227,161 +227,98 @@ const Settings = () => {
     </div>
   );
 
-  const Shipping = () => (
-    <div className="space-y-6">
-      <Section title="Delivery Methods">
-        <div className="space-y-6">
-          {/* Standard Delivery */}
-          <div className="border rounded-lg p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-gray-900">Standard Delivery</h4>
-              <Switch 
-                label="" 
-                checked={settings.shipping.methods?.standard?.enabled ?? true} 
-                onChange={(v) => setSettings({ 
-                  ...settings, 
-                  shipping: { 
-                    ...settings.shipping, 
-                    methods: { 
-                      ...settings.shipping.methods, 
-                      standard: { ...settings.shipping.methods?.standard, enabled: v } 
-                    } 
-                  } 
-                })} 
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Input 
-                label="Display Name" 
-                value={settings.shipping.methods?.standard?.name || 'Standard'} 
-                onChange={(e) => setSettings({ 
-                  ...settings, 
-                  shipping: { 
-                    ...settings.shipping, 
-                    methods: { 
-                      ...settings.shipping.methods, 
-                      standard: { ...settings.shipping.methods?.standard, name: e.target.value } 
-                    } 
-                  } 
-                })} 
-              />
-              <Input 
-                label="Price" 
-                type="number" 
-                min="0" 
-                step="0.01"
-                value={settings.shipping.methods?.standard?.price ?? 10} 
-                onChange={(e) => setSettings({ 
-                  ...settings, 
-                  shipping: { 
-                    ...settings.shipping, 
-                    methods: { 
-                      ...settings.shipping.methods, 
-                      standard: { ...settings.shipping.methods?.standard, price: Number(e.target.value) } 
-                    } 
-                  } 
-                })} 
-              />
-              <Input 
-                label="Free Above (Subtotal)" 
-                type="number" 
-                min="0" 
-                step="0.01"
-                value={settings.shipping.methods?.standard?.freeAbove ?? 50} 
-                onChange={(e) => setSettings({ 
-                  ...settings, 
-                  shipping: { 
-                    ...settings.shipping, 
-                    methods: { 
-                      ...settings.shipping.methods, 
-                      standard: { ...settings.shipping.methods?.standard, freeAbove: Number(e.target.value) } 
-                    } 
-                  } 
-                })} 
-              />
-            </div>
-          </div>
+  const Shipping = () => {
+    const deleteMethod = (id) => {
+      const { [id]: _, ...rest } = settings.shipping.methods;
+      setSettings(prev => ({
+        ...prev,
+        shipping: {
+          ...prev.shipping,
+          methods: rest
+        }
+      }));
+    };
 
-          {/* Express Delivery */}
-          <div className="border rounded-lg p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-gray-900">Express Delivery</h4>
-              <Switch 
-                label="" 
-                checked={settings.shipping.methods?.express?.enabled ?? true} 
-                onChange={(v) => setSettings({ 
-                  ...settings, 
-                  shipping: { 
-                    ...settings.shipping, 
-                    methods: { 
-                      ...settings.shipping.methods, 
-                      express: { ...settings.shipping.methods?.express, enabled: v } 
-                    } 
-                  } 
-                })} 
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Input 
-                label="Display Name" 
-                value={settings.shipping.methods?.express?.name || 'Express'} 
-                onChange={(e) => setSettings({ 
-                  ...settings, 
-                  shipping: { 
-                    ...settings.shipping, 
-                    methods: { 
-                      ...settings.shipping.methods, 
-                      express: { ...settings.shipping.methods?.express, name: e.target.value } 
-                    } 
-                  } 
-                })} 
-              />
-              <Input 
-                label="Price" 
-                type="number" 
-                min="0" 
-                step="0.01"
-                value={settings.shipping.methods?.express?.price ?? 20} 
-                onChange={(e) => setSettings({ 
-                  ...settings, 
-                  shipping: { 
-                    ...settings.shipping, 
-                    methods: { 
-                      ...settings.shipping.methods, 
-                      express: { ...settings.shipping.methods?.express, price: Number(e.target.value) } 
-                    } 
-                  } 
-                })} 
-              />
-              <Input 
-                label="Free Above (Subtotal)" 
-                type="number" 
-                min="0" 
-                step="0.01"
-                value={settings.shipping.methods?.express?.freeAbove ?? 0} 
-                onChange={(e) => setSettings({ 
-                  ...settings, 
-                  shipping: { 
-                    ...settings.shipping, 
-                    methods: { 
-                      ...settings.shipping.methods, 
-                      express: { ...settings.shipping.methods?.express, freeAbove: Number(e.target.value) } 
-                    } 
-                  } 
-                })} 
-              />
-            </div>
+    const addMethod = () => {
+      const newId = `method_${Date.now()}`;
+      setSettings(prev => ({
+        ...prev,
+        shipping: {
+          ...prev.shipping,
+          methods: {
+            ...prev.shipping.methods,
+            [newId]: { name: 'New Method', price: 0, freeAbove: 0, enabled: true }
+          }
+        }
+      }));
+    };
+
+    const handleMethodChange = (id, field, value) => {
+      setSettings(prev => ({
+        ...prev,
+        shipping: {
+          ...prev.shipping,
+          methods: {
+            ...prev.shipping.methods,
+            [id]: { ...prev.shipping.methods[id], [field]: value }
+          }
+        }
+      }));
+    };
+
+    return (
+      <div className="space-y-6">
+        <Section title="Delivery Methods" actions={<button onClick={addMethod} className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800"><PlusCircle className="h-4 w-4 mr-1" /> Add Method</button>}>
+          <div className="space-y-6">
+            {Object.entries(settings.shipping.methods || {}).map(([id, method]) => (
+              <div key={id} className="border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    <h4 className="font-semibold text-gray-900 capitalize">{id.replace(/_/g, ' ')}</h4>
+                    <button onClick={() => deleteMethod(id)} className="text-red-500 hover:text-red-700"><Trash2 className="h-4 w-4" /></button>
+                  </div>
+                  <Switch 
+                    label="" 
+                    checked={method.enabled ?? true} 
+                    onChange={(v) => handleMethodChange(id, 'enabled', v)}
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Input 
+                    label="Display Name" 
+                    value={method.name || ''} 
+                    onChange={(e) => handleMethodChange(id, 'name', e.target.value)}
+                  />
+                  <Input 
+                    label="Price" 
+                    type="number" 
+                    min="0" 
+                    step="0.01"
+                    value={method.price ?? 0} 
+                    onChange={(e) => handleMethodChange(id, 'price', Number(e.target.value))}
+                  />
+                  <Input 
+                    label="Free Above (Subtotal)" 
+                    type="number" 
+                    min="0" 
+                    step="0.01"
+                    value={method.freeAbove ?? 0} 
+                    onChange={(e) => handleMethodChange(id, 'freeAbove', Number(e.target.value))}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800">
-            <strong>Note:</strong> Set "Free Above" to 0 to never offer free shipping for that method. 
-            Disabled methods will not appear in checkout.
-          </p>
-        </div>
-      </Section>
-    </div>
-  );
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>Note:</strong> Set "Free Above" to 0 to never offer free shipping for that method. 
+              Disabled methods will not appear in checkout.
+            </p>
+          </div>
+        </Section>
+      </div>
+    );
+  };
 
   const Appearance = () => (
     <div className="space-y-6">
