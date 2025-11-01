@@ -231,7 +231,7 @@ const Products = () => {
                       )}
                     </div>
                     <div className="p-3 sm:p-4 lg:p-5 flex flex-col flex-grow bg-white">
-                      <h3 className="font-bold text-sm sm:text-base lg:text-lg text-gray-900 line-clamp-2 min-h-[2.5rem] sm:min-h-[3rem] leading-tight">{product.name}</h3>
+                      <h3 className="font-bold text-sm sm:text-base lg:text-lg text-gray-900 line-clamp-2 min-h-[2.5rem] sm:min-h-[3rem] leading-tight mb-0 sm:mb-3">{product.name}</h3>
                       <div className="flex items-center justify-between mb-3 sm:mb-4">
                         <div className="flex items-center">
                           <div className="flex items-center bg-yellow-50 border border-yellow-100 px-2.5 py-1 rounded-lg">
