@@ -230,19 +230,19 @@ const Products = () => {
                         </div>
                       )}
                     </div>
-                    <div className="p-2 sm:p-4 lg:p-5 flex flex-col flex-grow bg-white">
-                      <h3 className="font-bold text-[11px] sm:text-base lg:text-lg text-gray-900 line-clamp-2 min-h-[2.1rem] sm:min-h-[3rem] leading-tight mb-0 sm:mb-3">
+                    <div className="p-1.5 sm:p-4 lg:p-5 flex flex-col flex-grow bg-white">
+                      <h3 className="font-bold text-[10px] sm:text-base lg:text-lg text-gray-900 line-clamp-2 min-h-[1.9rem] sm:min-h-[3rem] leading-tight mb-0 sm:mb-3">
                         {product.name}
                       </h3>
-                      <div className="flex items-center justify-between mb-1.5 sm:mb-4">
+                      <div className="flex items-center justify-between mb-1 sm:mb-4">
                         <div className="flex items-center">
-                          <div className="flex items-center bg-yellow-50 border border-yellow-100 px-1 py-0.5 rounded-sm sm:rounded-lg">
-                            <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 fill-yellow-500" />
-                            <span className="ml-1 text-[10px] sm:text-sm font-bold text-gray-800">
+                          <div className="flex items-center bg-yellow-50 border border-yellow-100 px-0.5 py-0.5 rounded-sm sm:rounded-lg">
+                            <Star className="h-2.5 w-2.5 sm:h-4 sm:w-4 text-yellow-500 fill-yellow-500" />
+                            <span className="ml-0.5 text-[10px] sm:text-sm font-bold text-gray-800">
                               {product.ratings.average.toFixed(1)}
                             </span>
                           </div>
-                          <span className="ml-1 text-[10px] sm:text-sm text-gray-500 font-medium">
+                          <span className="ml-0.5 text-[10px] sm:text-sm text-gray-500 font-medium">
                             ({product.ratings.count})
                           </span>
                         </div>
@@ -251,13 +251,13 @@ const Products = () => {
                         </span>
                       </div>
 
-                      <div className="mt-auto pt-1 border-t border-gray-100">
-                        <div className="flex items-baseline gap-1 flex-wrap">
+                      <div className="mt-auto pt-0.5 border-t border-gray-100">
+                        <div className="flex items-baseline gap-0.5 flex-wrap">
                           <span className="text-base sm:text-2xl lg:text-3xl font-extrabold text-pink-600">
                             {formatPrice(product.price, product.currency)}
                           </span>
                           {product.comparePrice && (
-                            <span className="text-[10px] sm:text-sm text-gray-400 line-through font-medium">
+                            <span className="text-[9px] sm:text-sm text-gray-400 line-through font-medium">
                               {formatPrice(product.comparePrice, product.currency)}
                             </span>
                           )}
