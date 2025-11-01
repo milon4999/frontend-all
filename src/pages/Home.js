@@ -330,9 +330,9 @@ const Home = () => {
                 <Link
                   key={product._id}
                   to={`/products/${product._id}`}
-                  className="flex-shrink-0 w-32 sm:w-64 bg-white rounded-lg sm:rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group border border-gray-100"
+                  className="flex-shrink-0 w-36 sm:w-64 bg-white rounded-lg sm:rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group border border-gray-100"
                 >
-                  <div className="relative h-24 sm:h-48 overflow-hidden bg-gray-100">
+                  <div className="relative h-36 sm:h-48 overflow-hidden bg-gray-100">
                     <img
                       src={product.images[0]?.url || 'https://via.placeholder.com/300'}
                       alt={product.name}
@@ -356,32 +356,34 @@ const Home = () => {
                     </div>
                   </div>
                   
-                  <div className="p-2 sm:p-4 flex flex-col h-[95px] sm:h-auto">
+                  <div className="p-1.5 sm:p-4 flex flex-col flex-grow bg-white">
                     {/* Product Name */}
-                    <h3 className="font-bold text-gray-800 mb-1 sm:mb-2 text-[10px] sm:text-base leading-tight line-clamp-2 group-hover:text-red-600 transition-colors min-h-[18px] sm:min-h-0">
+                    <h3 className="font-bold text-gray-800 mb-0.5 sm:mb-2 text-xs sm:text-base leading-tight line-clamp-2 group-hover:text-red-600 transition-colors min-h-[2rem] sm:min-h-0">
                       {product.name}
                     </h3>
                     
                     {/* Rating & Sales */}
                     <div className="flex items-center justify-between mb-1 sm:mb-3">
-                      <div className="flex items-center gap-0.5 sm:gap-1 bg-yellow-50 px-1 sm:px-1.5 py-0.5 rounded">
+                      <div className="flex items-center gap-0.5 sm:gap-1 bg-yellow-50 px-0.5 sm:px-1.5 py-0.5 rounded">
                         <Star className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 text-yellow-500 fill-current flex-shrink-0" />
-                        <span className="text-[8px] sm:text-xs font-semibold text-gray-700">
+                        <span className="text-[9px] sm:text-xs font-semibold text-gray-700">
                           {product.ratings.average.toFixed(1)} <span className="text-gray-500">({product.ratings.count})</span>
                         </span>
                       </div>
-                      <span className="text-[8px] sm:text-xs text-gray-500 font-medium">
+                      <span className="text-[9px] sm:text-xs text-gray-500 font-medium">
                         {product.sales || 0} sold
                       </span>
                     </div>
                     
                     {/* Price Section */}
-                    <div className="mt-auto pt-1 sm:pt-2 border-t border-gray-100">
-                      <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
+                    <div className="mt-auto pt-0.5 sm:pt-2 border-t border-gray-100">
+                      <div className="flex items-baseline gap-0.5 sm:gap-2 flex-wrap">
                         <span className="text-base sm:text-xl lg:text-2xl font-extrabold text-pink-600 leading-none">{formatPrice(product.price, product.currency)}</span>
-                        <span className="text-[8px] sm:text-sm text-gray-400 line-through font-medium leading-none">
-                          {formatPrice(product.comparePrice, product.currency)}
-                        </span>
+                        {product.comparePrice && (
+                          <span className="text-[9px] sm:text-sm text-gray-400 line-through font-medium leading-none">
+                            {formatPrice(product.comparePrice, product.currency)}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -454,7 +456,7 @@ const Home = () => {
           {loading ? (
             <div className="flex space-x-1 md:space-x-3 overflow-hidden">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex-shrink-0 w-32 sm:w-64 bg-gray-200 rounded-lg h-52 sm:h-80 animate-pulse"></div>
+                <div key={i} className="flex-shrink-0 w-32 sm:w-64 bg-gray-200 rounded-lg md:rounded-xl h-52 sm:h-80 animate-pulse"></div>
               ))}
             </div>
           ) : featuredProducts.length > 0 ? (
@@ -467,9 +469,9 @@ const Home = () => {
                 <Link
                   key={product._id}
                   to={`/products/${product._id}`}
-                  className="flex-shrink-0 w-32 sm:w-64 bg-white rounded-lg sm:rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group border border-gray-100"
+                  className="flex-shrink-0 w-36 sm:w-64 bg-white rounded-lg md:rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group border border-gray-100"
                 >
-                  <div className="relative h-24 sm:h-48 overflow-hidden bg-gray-100">
+                  <div className="relative h-36 sm:h-48 overflow-hidden bg-gray-100">
                     <img
                       src={product.images[0]?.url || 'https://via.placeholder.com/300'}
                       alt={product.name}
@@ -485,31 +487,31 @@ const Home = () => {
                     )}
                   </div>
                   
-                  <div className="p-2 sm:p-4 flex flex-col h-[95px] sm:h-auto">
+                  <div className="p-1.5 sm:p-4 flex flex-col flex-grow bg-white">
                     {/* Product Name */}
-                    <h3 className="font-bold text-gray-800 mb-1 sm:mb-2 text-[10px] sm:text-base leading-tight line-clamp-2 group-hover:text-primary-600 transition-colors min-h-[18px] sm:min-h-0">
+                    <h3 className="font-bold text-gray-800 mb-0.5 sm:mb-2 text-xs sm:text-base leading-tight line-clamp-2 group-hover:text-primary-600 transition-colors min-h-[2rem] sm:min-h-0">
                       {product.name}
                     </h3>
                     
                     {/* Rating & Sales */}
                     <div className="flex items-center justify-between mb-1 sm:mb-3">
-                      <div className="flex items-center gap-0.5 sm:gap-1 bg-yellow-50 px-1 sm:px-1.5 py-0.5 rounded">
+                      <div className="flex items-center gap-0.5 sm:gap-1 bg-yellow-50 px-0.5 sm:px-1.5 py-0.5 rounded">
                         <Star className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 text-yellow-500 fill-current flex-shrink-0" />
-                        <span className="text-[8px] sm:text-xs font-semibold text-gray-700">
+                        <span className="text-[9px] sm:text-xs font-semibold text-gray-700">
                           {product.ratings.average.toFixed(1)} <span className="text-gray-500">({product.ratings.count})</span>
                         </span>
                       </div>
-                      <span className="text-[8px] sm:text-xs text-gray-500 font-medium">
+                      <span className="text-[9px] sm:text-xs text-gray-500 font-medium">
                         {product.sales || 0} sold
                       </span>
                     </div>
                     
                     {/* Price Section */}
-                    <div className="mt-auto pt-1 sm:pt-2 border-t border-gray-100">
-                      <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
+                    <div className="mt-auto pt-0.5 sm:pt-2 border-t border-gray-100">
+                      <div className="flex items-baseline gap-0.5 sm:gap-2 flex-wrap">
                         <span className="text-base sm:text-xl lg:text-2xl font-extrabold text-pink-600 leading-none">{formatPrice(product.price, product.currency)}</span>
                         {product.comparePrice && (
-                          <span className="text-[8px] sm:text-sm text-gray-400 line-through font-medium leading-none">
+                          <span className="text-[9px] sm:text-sm text-gray-400 line-through font-medium leading-none">
                             {formatPrice(product.comparePrice, product.currency)}
                           </span>
                         )}
@@ -550,78 +552,82 @@ const Home = () => {
           {latestLoading ? (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-0.5 md:gap-4">
               {[...Array(10)].map((_, i) => (
-                <div key={i} className="bg-gray-200 rounded-lg h-64 md:h-80 animate-pulse"></div>
+                <div key={i} className="bg-gray-200 rounded-lg md:rounded-xl h-64 md:h-80 animate-pulse"></div>
               ))}
             </div>
           ) : latestProducts.length > 0 ? (
             <>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-0.5 md:gap-4">
-              {latestProducts.map((product) => (
-                <Link
-                  key={product._id}
-                  to={`/products/${product._id}`}
-                  className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:border-pink-200 hover:-translate-y-1 transition-all duration-300 group flex flex-col"
-                >
-                  <div className="relative h-48 sm:h-56 lg:h-64 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-                    <img
-                      src={product.images[0]?.url || 'https://via.placeholder.com/300'}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                    />
-                    {product.comparePrice && Number(product.comparePrice) > Number(product.price) && Number(product.comparePrice) > 0 && (
-                      <div className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-gradient-to-r from-red-500 to-red-600 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-extrabold shadow-xl">
-                        {Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)}% OFF
-                      </div>
-                    )}
-                    {product.inventory?.stock === 0 && (
-                      <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center backdrop-blur-sm">
-                        <span className="text-white font-bold text-sm sm:text-base bg-red-600 px-4 py-2 rounded-xl shadow-lg">Out of Stock</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-3 sm:p-4 flex flex-col flex-grow bg-white">
-                    <h3 className="font-bold text-sm sm:text-base text-gray-900 line-clamp-2 min-h-[2.5rem] sm:min-h-[3rem] leading-tight mb-0 sm:mb-3">{product.name}</h3>
-                    <div className="flex items-center justify-between mb-3 sm:mb-4">
-                      <div className="flex items-center">
-                        <div className="flex items-center bg-yellow-50 border border-yellow-100 px-2 sm:px-2.5 py-1 rounded-lg">
-                          <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-500 fill-yellow-500" />
-                          <span className="ml-1.5 text-xs sm:text-sm font-bold text-gray-800">
-                            {product.ratings.average.toFixed(1)}
+                {latestProducts.map((product) => (
+                  <Link
+                    key={product._id}
+                    to={`/products/${product._id}`}
+                    className="bg-white rounded-lg md:rounded-xl lg:rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:border-pink-200 hover:-translate-y-1 transition-all duration-300 group flex flex-col"
+                  >
+                    <div className="relative h-60 sm:h-60 lg:h-64 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+                      <img
+                        src={product.images[0]?.url || 'https://via.placeholder.com/300'}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                      />
+                      {product.comparePrice && Number(product.comparePrice) > Number(product.price) && Number(product.comparePrice) > 0 && (
+                        <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-gradient-to-r from-red-500 to-red-600 text-white px-2.5 py-1.5 rounded-full text-xs sm:text-sm font-extrabold shadow-xl">
+                          {Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)}% OFF
+                        </div>
+                      )}
+                      {product.inventory?.stock === 0 && (
+                        <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center backdrop-blur-sm">
+                          <span className="text-white font-bold text-sm sm:text-base bg-red-600 px-4 py-2.5 rounded-xl shadow-lg">Out of Stock</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-1.5 sm:p-4 flex flex-col flex-grow bg-white">
+                      <h3 className="font-bold text-xs sm:text-base text-gray-900 line-clamp-2 min-h-[2rem] sm:min-h-[3rem] leading-tight mb-0 sm:mb-3">
+                        {product.name}
+                      </h3>
+                      <div className="flex items-center justify-between mb-1 sm:mb-4">
+                        <div className="flex items-center">
+                          <div className="flex items-center bg-yellow-50 border border-yellow-100 px-0.5 py-0.5 rounded-sm sm:rounded-lg">
+                            <Star className="h-2.5 w-2.5 sm:h-4 sm:w-4 text-yellow-500 fill-yellow-500" />
+                            <span className="ml-0.5 text-[10px] sm:text-sm font-bold text-gray-800">
+                              {product.ratings.average.toFixed(1)}
+                            </span>
+                          </div>
+                          <span className="ml-0.5 text-[10px] sm:text-sm text-gray-500 font-medium">
+                            ({product.ratings.count})
                           </span>
                         </div>
-                        <span className="ml-2 text-xs sm:text-sm text-gray-500 font-medium">
-                          ({product.ratings.count})
+                        <span className="text-[10px] sm:text-sm text-gray-500 font-medium">
+                          {product.sales || 0} sold
                         </span>
                       </div>
-                      <span className="text-xs sm:text-sm text-gray-500 font-medium">
-                        {product.sales || 0} sold
-                      </span>
-                    </div>
-                    
-                    <div className="mt-auto pt-2 border-t border-gray-100">
-                      <div className="flex items-baseline gap-2 flex-wrap">
-                        <span className="text-lg sm:text-xl lg:text-2xl font-extrabold text-pink-600">{formatPrice(product.price, product.currency)}</span>
-                        {product.comparePrice && (
-                          <span className="text-xs sm:text-sm text-gray-400 line-through font-medium">
-                            {formatPrice(product.comparePrice, product.currency)}
+
+                      <div className="mt-auto pt-0.5 border-t border-gray-100">
+                        <div className="flex items-baseline gap-0.5 flex-wrap">
+                          <span className="text-base sm:text-xl lg:text-2xl font-extrabold text-pink-600">
+                            {formatPrice(product.price, product.currency)}
                           </span>
-                        )}
+                          {product.comparePrice && (
+                            <span className="text-[9px] sm:text-sm text-gray-400 line-through font-medium">
+                              {formatPrice(product.comparePrice, product.currency)}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                ))}
               </div>
-              
+
               {/* Loading More Indicator */}
               {loadingMore && (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-0.5 md:gap-4 mt-3 md:mt-4">
                   {[...Array(10)].map((_, i) => (
-                    <div key={i} className="bg-gray-200 rounded-lg h-64 md:h-80 animate-pulse"></div>
+                    <div key={i} className="bg-gray-200 rounded-lg md:rounded-xl h-64 md:h-80 animate-pulse"></div>
                   ))}
                 </div>
               )}
-              
+
               {/* End of Products Message */}
               {!hasMoreLatest && latestProducts.length > 0 && (
                 <div className="text-center py-8">
