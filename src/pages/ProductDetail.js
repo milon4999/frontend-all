@@ -28,6 +28,8 @@ const ProductDetail = () => {
   const [recommendedLoading, setRecommendedLoading] = useState(true);
   const [openSection, setOpenSection] = useState('description');
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [isVariantModalOpen, setIsVariantModalOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
   
   const DESCRIPTION_CHAR_LIMIT = 300;
 
@@ -74,16 +76,22 @@ const ProductDetail = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  const handleAddToCart = () => {
+  const isVariantSelectionIncomplete = () => {
+    if (!product?.variants || product.variants.length === 0) {
+      return false;
+    }
+    return product.variants.some((variant) => !selectedVariants[variant.name]);
+  };
+
+  const executeAddToCart = () => {
     if (!product) return;
-    
+
     const variantString = Object.entries(selectedVariants)
       .map(([key, value]) => `${key}: ${value}`)
       .join(', ');
 
-    // Pick image based on selected Color (fallback to first image)
     const selectedColor = (selectedVariants['Color'] || selectedVariants['color'] || '').toLowerCase();
-    const colorImage = (product.images || []).find(img => String(img.color || '').toLowerCase() === selectedColor)?.url;
+    const colorImage = (product.images || []).find((img) => String(img.color || '').toLowerCase() === selectedColor)?.url;
     const chosenImage = colorImage || product.images[0]?.url;
 
     dispatch(addToCart({
@@ -99,15 +107,14 @@ const ProductDetail = () => {
     toast.success('Added to cart!');
   };
 
-  const handleBuyNow = () => {
+  const executeBuyNow = () => {
     if (!product) return;
     const variantString = Object.entries(selectedVariants)
       .map(([key, value]) => `${key}: ${value}`)
       .join(', ');
 
-    // Pick image based on selected Color (fallback to first image)
     const selectedColor = (selectedVariants['Color'] || selectedVariants['color'] || '').toLowerCase();
-    const colorImage = (product.images || []).find(img => String(img.color || '').toLowerCase() === selectedColor)?.url;
+    const colorImage = (product.images || []).find((img) => String(img.color || '').toLowerCase() === selectedColor)?.url;
     const chosenImage = colorImage || product.images[0]?.url;
 
     const buyNowItem = {
@@ -121,6 +128,26 @@ const ProductDetail = () => {
       variant: variantString
     };
     navigate('/checkout', { state: { buyNowItem } });
+  };
+
+  const handleAddToCart = () => {
+    if (!product) return;
+    if (isVariantSelectionIncomplete()) {
+      setPendingAction('cart');
+      setIsVariantModalOpen(true);
+      return;
+    }
+    executeAddToCart();
+  };
+
+  const handleBuyNow = () => {
+    if (!product) return;
+    if (isVariantSelectionIncomplete()) {
+      setPendingAction('buy');
+      setIsVariantModalOpen(true);
+      return;
+    }
+    executeBuyNow();
   };
 
   const handleAddToWishlist = () => {
@@ -154,6 +181,26 @@ const ProductDetail = () => {
       // Fallback: copy to clipboard
       navigator.clipboard.writeText(window.location.href);
       toast.success('Product link copied to clipboard!');
+    }
+  };
+
+  const handleVariantModalClose = () => {
+    setIsVariantModalOpen(false);
+    setPendingAction(null);
+  };
+
+  const handleVariantModalConfirm = () => {
+    if (!product) return;
+    if (isVariantSelectionIncomplete()) {
+      toast.error('Please select all required options.');
+      return;
+    }
+    const action = pendingAction;
+    handleVariantModalClose();
+    if (action === 'cart') {
+      executeAddToCart();
+    } else if (action === 'buy') {
+      executeBuyNow();
     }
   };
 
@@ -272,19 +319,12 @@ const ProductDetail = () => {
             </div>
 
             {/* Badges */}
-            {(product.featured || (product.comparePrice && Number(product.comparePrice) > Number(product.price))) && (
-              <div className="absolute top-4 left-4 flex flex-col gap-2">
-                {product.featured && (
-                  <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center">
-                    <Star className="h-4 w-4 mr-1" />
-                    Featured
-                  </span>
-                )}
-                {product.comparePrice && Number(product.comparePrice) > Number(product.price) && (
-                  <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                    -{Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)}%
-                  </span>
-                )}
+            {product.featured && (
+              <div className="absolute top-4 left-4">
+                <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center">
+                  <Star className="h-4 w-4 mr-1" />
+                  Featured
+                </span>
               </div>
             )}
             {product.comparePrice && Number(product.comparePrice) > Number(product.price) && (
@@ -320,7 +360,7 @@ const ProductDetail = () => {
                 </span>
                 <button 
                   onClick={handleAddToWishlist}
-                  className={`p-2 rounded-full transition-all ${
+                  className={`hidden md:flex p-2 rounded-full transition-all ${
                     isWishlisted 
                       ? 'bg-red-100 text-red-600' 
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -371,7 +411,7 @@ const ProductDetail = () => {
                     </div>
                   )}
                 </div>
-                <button className="p-2 text-gray-500 hover:text-gray-700">
+                <button className="hidden md:inline-flex p-2 text-gray-500 hover:text-gray-700">
                   <Share2 className="h-5 w-5" />
                 </button>
               </div>
@@ -867,6 +907,62 @@ const ProductDetail = () => {
           )}
         </div>
       </section>
+
+      {isVariantModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center px-4">
+          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl p-6">
+            <button
+              onClick={handleVariantModalClose}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <div className="flex items-start gap-3 pr-8">
+              <Info className="h-6 w-6 text-blue-600 mt-1" />
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Select product options</h3>
+                <p className="text-sm text-gray-600">Choose the available size, color, or other variants to continue.</p>
+              </div>
+            </div>
+            <div className="mt-5 space-y-4">
+              {product.variants?.map((variant) => (
+                <div key={variant.name}>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">{variant.name}</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {variant.options.map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => setSelectedVariants({ ...selectedVariants, [variant.name]: option })}
+                        className={`px-3 py-2 rounded-lg border text-sm font-medium transition-all ${
+                          selectedVariants[variant.name] === option
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-gray-300 hover:border-gray-400 text-gray-700'
+                        }`}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 flex flex-col sm:flex-row sm:justify-end sm:space-x-3 space-y-3 sm:space-y-0">
+              <button
+                onClick={handleVariantModalClose}
+                className="w-full sm:w-auto px-4 py-3 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleVariantModalConfirm}
+                className="w-full sm:w-auto px-4 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:from-blue-700 hover:to-purple-700 transition-colors"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Image Modal */}
       {showImageModal && (
