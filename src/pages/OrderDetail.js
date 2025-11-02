@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { ordersAPI } from '../services/api';
 import { Package } from 'lucide-react';
 import { formatPrice } from '../utils/currency';
@@ -8,6 +9,7 @@ const OrderDetail = () => {
   const { id } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -23,6 +25,21 @@ const OrderDetail = () => {
     fetchOrder();
   }, [id]);
 
+  const handleCancel = async () => {
+    if (!order?._id) return;
+    setCancelLoading(true);
+    try {
+      const response = await ordersAPI.cancel(order._id, {});
+      setOrder(response.data.order);
+      toast.success('Order cancelled successfully');
+    } catch (error) {
+      const message = error?.response?.data?.message || 'Failed to cancel order';
+      toast.error(message);
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
   if (loading || !order) {
     return (
       <div
@@ -33,6 +50,14 @@ const OrderDetail = () => {
       </div>
     );
   }
+
+  const shipping = order.shippingAddress || {};
+  const contactLine = shipping.phone || '';
+  const addressLine = shipping.address || '';
+  const streetLine = shipping.street || '';
+  const cityState = [shipping.city, shipping.state].filter(Boolean).join(', ');
+  const postalLine = [cityState, shipping.zipCode].filter(Boolean).join(' ').trim();
+  const countryLine = shipping.country || '';
 
   return (
     <div
@@ -45,10 +70,12 @@ const OrderDetail = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="font-bold mb-4">Shipping Address</h2>
-          <p>{order.shippingAddress.name}</p>
-          <p>{order.shippingAddress.street}</p>
-          <p>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zipCode}</p>
-          <p>{order.shippingAddress.country}</p>
+          <p>{shipping.name}</p>
+          {contactLine ? <p>{contactLine}</p> : null}
+          {addressLine ? <p>{addressLine}</p> : null}
+          {streetLine ? <p>{streetLine}</p> : null}
+          {postalLine ? <p>{postalLine}</p> : null}
+          {countryLine ? <p>{countryLine}</p> : null}
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">
@@ -57,6 +84,16 @@ const OrderDetail = () => {
             <Package className="h-5 w-5 text-primary-600" />
             <span className="capitalize font-semibold">{order.status}</span>
           </div>
+          {order.status === 'pending' ? (
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={cancelLoading}
+              className="mt-4 w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded disabled:opacity-50"
+            >
+              {cancelLoading ? 'Cancelling...' : 'Cancel Order'}
+            </button>
+          ) : null}
           {order.tracking?.trackingNumber && (
             <div className="mt-4">
               <p className="text-sm text-gray-600">Tracking Number:</p>

@@ -192,7 +192,7 @@ const Checkout = () => {
   }, []);
 
   const [paymentMethod, setPaymentMethod] = useState(() => enabledMethods[0]?.id || 'cod');
-  const buttonText = ['card', 'paypal'].includes(paymentMethod) ? 'Continue to Payment' : 'Place Order';
+  const buttonText = ['card', 'paypal'].includes(paymentMethod) ? 'Continue to Payment' : 'অর্ডার করুন';
 
   const applyCoupon = async () => {
     const code = (couponCode || '').trim().toUpperCase();
@@ -447,7 +447,7 @@ const Checkout = () => {
 
         <div className="order-3 lg:order-1 lg:col-span-2">
           <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-4 md:p-6 space-y-4">
-            <h2 className="text-xl font-bold mb-4">Shipping Information</h2>
+            <h2 className="text-xl font-bold mb-4 text-pink-600">আপনার অর্ডারটি কনফার্ম করতে তথ্যগুলো পূরণ করে "অর্ডার করুন" বাটন এ ক্লিক করুন</h2>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">আপনার নাম লিখুন *</label>
@@ -519,7 +519,7 @@ const Checkout = () => {
             <button
               type="submit"
               disabled={selectedItems.length === 0}
-              className="w-full bg-primary-600 text-white py-3 rounded-lg hover:bg-primary-700 transition font-semibold mt-6 disabled:opacity-50"
+              className="w-full bg-pink-600 text-white py-3 rounded-lg hover:bg-pink-700 transition font-semibold mt-6 disabled:opacity-50"
             >
               {buttonText}
             </button>
